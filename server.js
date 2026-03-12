@@ -15,11 +15,24 @@ const PORT = 3000;
 // SSE clients for real-time updates
 let sseClients = [];
 
-// Base directory for LaTeX projects (projects folder, not tracked by git)
-const PROJECTS_BASE = path.resolve(__dirname, '..', 'projects');
-const PDFLATEX = 'C:/Users/Chang/AppData/Local/Programs/MiKTeX/miktex/bin/x64/pdflatex.exe';
-const XELATEX = 'C:/Users/Chang/AppData/Local/Programs/MiKTeX/miktex/bin/x64/xelatex.exe';
-const BIBTEX = 'C:/Users/Chang/AppData/Local/Programs/MiKTeX/miktex/bin/x64/bibtex.exe';
+// Base directory for LaTeX projects
+// Try ../projects first (nested dev layout), then ./projects (standard clone)
+const PROJECTS_PARENT = path.resolve(__dirname, '..', 'projects');
+const PROJECTS_LOCAL = path.resolve(__dirname, 'projects');
+const PROJECTS_BASE = fs.existsSync(PROJECTS_PARENT) ? PROJECTS_PARENT : PROJECTS_LOCAL;
+
+// LaTeX engine paths — auto-detect from PATH, fallback to explicit paths
+function findExecutable(name, fallback) {
+    try {
+        const cmd = process.platform === 'win32' ? `where ${name}` : `which ${name}`;
+        return execSync(cmd, { encoding: 'utf-8' }).trim().split(/\r?\n/)[0];
+    } catch {
+        return fallback;
+    }
+}
+const PDFLATEX = findExecutable('pdflatex', 'pdflatex');
+const XELATEX = findExecutable('xelatex', 'xelatex');
+const BIBTEX = findExecutable('bibtex', 'bibtex');
 
 // Detect if a project needs XeLaTeX (Chinese fonts, fontspec, etc.)
 function needsXeLatex(projectPath) {
