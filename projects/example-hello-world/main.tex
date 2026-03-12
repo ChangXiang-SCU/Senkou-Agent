@@ -1,0 +1,180 @@
+\documentclass[12pt, a4paper]{article}
+
+% ============================================================
+%  SwiftLaTeX 示例项目
+%  使用 XeLaTeX 编译，支持中英文混排
+% ============================================================
+
+% 中文支持
+\usepackage{ctex}
+
+% 页面布局
+\usepackage[margin=2.5cm]{geometry}
+
+% 数学公式
+\usepackage{amsmath, amssymb}
+
+% 图片
+\usepackage{graphicx}
+
+% 超链接
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+% 参考文献
+\usepackage[numbers]{natbib}
+
+% 代码高亮
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\small,
+    frame=single,
+    breaklines=true
+}
+
+% ============================================================
+
+\title{\textbf{SwiftLaTeX 示例文档} \\ \large 一个简单的 \LaTeX{} 入门项目}
+\author{SwiftLaTeX 用户}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+这是一个 SwiftLaTeX 的示例项目，用于演示编辑器的基本功能。
+本文档包含中英文混排、数学公式、代码块、表格和参考文献等常见 \LaTeX{} 元素，
+帮助你快速上手 SwiftLaTeX。
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{欢迎使用 SwiftLaTeX}
+% ============================================================
+
+SwiftLaTeX 是一个基于浏览器的 \LaTeX{} IDE，提供以下核心功能：
+
+\begin{itemize}
+    \item \textbf{代码编辑器} — 基于 CodeMirror 6，支持语法高亮和自动补全
+    \item \textbf{实时编译预览} — 修改后自动编译，实时查看 PDF 输出
+    \item \textbf{AI 助手} — 支持多种 AI 模型，帮你修复错误、润色文章
+    \item \textbf{评论系统} — 在具体行添加评论，方便协作讨论
+    \item \textbf{TODO 管理} — 跟踪任务进度
+\end{itemize}
+
+你可以通过快捷键 \texttt{Ctrl+S}（或 \texttt{Cmd+S}）保存文件，
+编辑器会在 2 秒无操作后自动保存。
+
+% ============================================================
+\section{数学公式}
+% ============================================================
+
+\LaTeX{} 的数学排版能力是它最强大的特性之一。
+
+\subsection{行内公式}
+
+著名的欧拉公式 $e^{i\pi} + 1 = 0$ 被誉为数学中最美的公式。
+质能方程 $E = mc^2$ 揭示了质量与能量的等价关系。
+
+\subsection{行间公式}
+
+高斯分布（正态分布）的概率密度函数：
+\begin{equation}
+    f(x) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)
+    \label{eq:gaussian}
+\end{equation}
+
+贝叶斯定理：
+\begin{equation}
+    P(A \mid B) = \frac{P(B \mid A) \cdot P(A)}{P(B)}
+    \label{eq:bayes}
+\end{equation}
+
+矩阵运算示例：
+\begin{equation}
+    \mathbf{A} = \begin{pmatrix}
+        a_{11} & a_{12} & a_{13} \\
+        a_{21} & a_{22} & a_{23} \\
+        a_{31} & a_{32} & a_{33}
+    \end{pmatrix}
+\end{equation}
+
+% ============================================================
+\section{代码展示}
+% ============================================================
+
+以下是一个简单的 Python Hello World 程序：
+
+\begin{lstlisting}[language=Python, caption={Python 示例}]
+def hello(name: str) -> str:
+    """Say hello to someone."""
+    return f"Hello, {name}! Welcome to SwiftLaTeX."
+
+if __name__ == "__main__":
+    print(hello("World"))
+\end{lstlisting}
+
+% ============================================================
+\section{表格}
+% ============================================================
+
+表~\ref{tab:comparison} 对比了几种常见的 \LaTeX{} 编辑器。
+
+\begin{table}[htbp]
+    \centering
+    \caption{LaTeX 编辑器对比}
+    \label{tab:comparison}
+    \begin{tabular}{lccc}
+        \hline
+        \textbf{编辑器} & \textbf{本地运行} & \textbf{AI 助手} & \textbf{免费} \\
+        \hline
+        SwiftLaTeX  & \checkmark & \checkmark & \checkmark \\
+        Overleaf    &            & \checkmark &            \\
+        TeXstudio   & \checkmark &            & \checkmark \\
+        VS Code     & \checkmark &            & \checkmark \\
+        \hline
+    \end{tabular}
+\end{table}
+
+% ============================================================
+\section{交叉引用}
+% ============================================================
+
+如公式~\eqref{eq:gaussian} 所示，高斯分布是统计学中最重要的分布之一。
+公式~\eqref{eq:bayes} 是贝叶斯推断的基础。
+
+关于深度学习的更多内容，可以参考 Goodfellow 等人的经典教材~\cite{goodfellow2016deep}。
+Transformer 架构~\cite{vaswani2017attention} 彻底改变了自然语言处理领域。
+
+% ============================================================
+\section{总结}
+% ============================================================
+
+恭喜你成功编译了第一个 SwiftLaTeX 项目！接下来你可以：
+
+\begin{enumerate}
+    \item 在 \texttt{projects/} 目录下创建自己的项目
+    \item 尝试使用 AI 助手帮你润色文章
+    \item 给特定行添加评论
+    \item 在 TODO 面板中管理任务
+\end{enumerate}
+
+如果遇到问题，欢迎在 GitHub 上提 Issue：\\
+\url{https://github.com/ChangXiang-SCU/SwiftLaTeX}
+
+% ============================================================
+% 参考文献
+% ============================================================
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

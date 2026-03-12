@@ -148,16 +148,19 @@ cp config.example.json config.json
 
 然后用任意文本编辑器打开 `config.json`，根据需要填入你的 API Key（详见下方"AI 助手配置"章节）。
 
-### 第四步：创建项目目录
+### 第四步：试用示例项目
 
-```bash
-mkdir projects
-```
+仓库自带了一个示例项目 `projects/example-hello-world/`，克隆后即可直接使用。
+它包含中英文混排、数学公式、代码块、表格、参考文献等常见 LaTeX 元素，帮助你快速上手。
 
-把你的 LaTeX 项目文件夹放到 `projects/` 目录下。每个子文件夹就是一个项目，例如：
+你也可以在 `projects/` 目录下添加自己的项目，每个子文件夹就是一个独立项目：
 
 ```
 projects/
+├── example-hello-world/   ← 自带的示例项目
+│   ├── main.tex
+│   ├── references.bib
+│   └── paper_todo.json
 ├── 我的论文/
 │   ├── main.tex
 │   ├── references.bib

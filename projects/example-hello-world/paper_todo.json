@@ -1,0 +1,32 @@
+{
+  "todos": [
+    {
+      "id": 1,
+      "task": "尝试修改 main.tex 并观察实时编译",
+      "category": "getting-started",
+      "priority": "high",
+      "status": "pending"
+    },
+    {
+      "id": 2,
+      "task": "试试 AI 助手：让它帮你解释一段 LaTeX 代码",
+      "category": "feature-explore",
+      "priority": "medium",
+      "status": "pending"
+    },
+    {
+      "id": 3,
+      "task": "在编辑器中给某一行添加评论",
+      "category": "feature-explore",
+      "priority": "medium",
+      "status": "pending"
+    },
+    {
+      "id": 4,
+      "task": "创建自己的 LaTeX 项目",
+      "category": "next-steps",
+      "priority": "low",
+      "status": "pending"
+    }
+  ]
+}

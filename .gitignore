@@ -4,8 +4,9 @@ node_modules/
 # User config (contains API keys)
 config.json
 
-# User projects data
-projects/
+# User projects data (except example project)
+projects/*
+!projects/example-hello-world/
 
 # Compilation logs
 output/
