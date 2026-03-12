@@ -1,0 +1,17 @@
+{
+  "github_token": "",
+  "overleaf_token": "",
+  "canvas_ics_url": "",
+  "openai_api_key": "",
+  "anthropic_api_key": "",
+  "google_ai_api_key": "",
+  "openrouter_api_key": "",
+  "google_oauth_client_id": "",
+  "google_oauth_client_secret": "",
+  "openai_oauth_client_id": "",
+  "openai_oauth_client_secret": "",
+  "ai_preferences": {
+    "last_provider": "openai",
+    "last_model": "gpt-4o"
+  }
+}

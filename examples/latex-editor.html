@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftLaTeX Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: #333;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #555;
+        }
+        .header h1 {
+            font-size: 18px;
+            color: #fff;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .btn-primary {
+            background: #0e639c;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #1177bb;
+        }
+        .btn-primary:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: #3c3c3c;
+            color: #d4d4d4;
+        }
+        .btn-secondary:hover {
+            background: #4c4c4c;
+        }
+        .status {
+            margin-left: auto;
+            font-size: 13px;
+            color: #888;
+        }
+        .status.ready { color: #4ec9b0; }
+        .status.compiling { color: #dcdcaa; }
+        .status.error { color: #f48771; }
+        .main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #555;
+        }
+        .panel-header {
+            background: #2d2d2d;
+            padding: 8px 15px;
+            font-size: 13px;
+            border-bottom: 1px solid #555;
+        }
+        #editor {
+            flex: 1;
+            width: 100%;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: none;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            resize: none;
+            outline: none;
+        }
+        .preview-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #252526;
+        }
+        #pdf-viewer {
+            flex: 1;
+            border: none;
+            background: #fff;
+        }
+        .log-panel {
+            height: 150px;
+            background: #1e1e1e;
+            border-top: 1px solid #555;
+            overflow: auto;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-panel pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .log-error { color: #f48771; }
+        .log-warning { color: #dcdcaa; }
+        .log-info { color: #4ec9b0; }
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            font-size: 16px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>SwiftLaTeX Editor</h1>
+        <button class="btn btn-secondary" onclick="loadFile()">Load .tex File</button>
+        <button class="btn btn-primary" id="compile-btn" onclick="compile()" disabled>Compile PDF</button>
+        <button class="btn btn-secondary" id="download-btn" onclick="downloadPDF()" disabled>Download PDF</button>
+        <span class="status" id="status">Loading engine...</span>
+        <input type="file" id="file-input" accept=".tex" style="display: none" onchange="handleFileSelect(event)">
+    </div>
+    <div class="main">
+        <div class="editor-panel">
+            <div class="panel-header">LaTeX Source (main.tex)</div>
+            <textarea id="editor" spellcheck="false"></textarea>
+        </div>
+        <div class="preview-panel">
+            <div class="panel-header">PDF Preview</div>
+            <div id="pdf-container" style="flex: 1; display: flex; align-items: center; justify-content: center;">
+                <div class="loading">Compile to see PDF preview</div>
+            </div>
+            <div class="log-panel">
+                <div class="panel-header" style="margin: -10px -10px 10px -10px; padding: 5px 10px;">Compilation Log</div>
+                <pre id="log"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="pdftex.wasm/PdfTeXEngine.js"></script>
+    <script>
+        let engine = null;
+        let pdfBlob = null;
+
+        // Sample LaTeX document
+        const sampleTex = `\\documentclass{article}
+\\usepackage[margin=1in]{geometry}
+
+\\begin{document}
+
+\\title{Hello SwiftLaTeX}
+\\author{Your Name}
+\\maketitle
+
+\\section{Introduction}
+This is a test document compiled with SwiftLaTeX in your browser!
+
+\\begin{equation}
+E = mc^2
+\\end{equation}
+
+\\section{Conclusion}
+SwiftLaTeX works!
+
+\\end{document}
+`;
+
+        async function initEngine() {
+            const statusEl = document.getElementById('status');
+            const compileBtn = document.getElementById('compile-btn');
+
+            try {
+                log('Initializing PdfTeX engine...', 'info');
+                engine = new PdfTeXEngine();
+                await engine.loadEngine();
+
+                statusEl.textContent = 'Engine ready';
+                statusEl.className = 'status ready';
+                compileBtn.disabled = false;
+
+                log('Engine loaded successfully!', 'info');
+
+                // Load sample or stored tex
+                const stored = localStorage.getItem('latex-source');
+                document.getElementById('editor').value = stored || sampleTex;
+
+            } catch (err) {
+                statusEl.textContent = 'Engine failed to load';
+                statusEl.className = 'status error';
+                log('Error loading engine: ' + err.message, 'error');
+            }
+        }
+
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const className = type === 'error' ? 'log-error' : type === 'warning' ? 'log-warning' : 'log-info';
+            logEl.innerHTML += `<span class="${className}">${message}</span>\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        async function compile() {
+            if (!engine || !engine.isReady()) {
+                log('Engine not ready', 'error');
+                return;
+            }
+
+            const statusEl = document.getElementById('status');
+            const compileBtn = document.getElementById('compile-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const texSource = document.getElementById('editor').value;
+
+            clearLog();
+            statusEl.textContent = 'Compiling...';
+            statusEl.className = 'status compiling';
+            compileBtn.disabled = true;
+
+            try {
+                // Save to localStorage
+                localStorage.setItem('latex-source', texSource);
+
+                log('Writing source file...', 'info');
+                engine.writeMemFSFile("main.tex", texSource);
+                engine.setEngineMainFile("main.tex");
+
+                log('Compiling LaTeX (this may take a moment for first run)...', 'info');
+                const result = await engine.compileLaTeX();
+
+                // Log compilation output
+                if (result.log) {
+                    const lines = result.log.split('\n');
+                    for (const line of lines) {
+                        if (line.includes('Error') || line.includes('!')) {
+                            log(line, 'error');
+                        } else if (line.includes('Warning')) {
+                            log(line, 'warning');
+                        }
+                    }
+                }
+
+                if (result.pdf) {
+                    pdfBlob = new Blob([result.pdf], { type: 'application/pdf' });
+                    const pdfUrl = URL.createObjectURL(pdfBlob);
+
+                    document.getElementById('pdf-container').innerHTML =
+                        `<iframe id="pdf-viewer" src="${pdfUrl}"></iframe>`;
+
+                    statusEl.textContent = 'Compilation successful';
+                    statusEl.className = 'status ready';
+                    downloadBtn.disabled = false;
+                    log('PDF generated successfully!', 'info');
+                } else {
+                    statusEl.textContent = 'Compilation failed';
+                    statusEl.className = 'status error';
+                    log('No PDF output generated. Check errors above.', 'error');
+                    if (result.log) {
+                        log('Full log:\n' + result.log, 'info');
+                    }
+                }
+
+            } catch (err) {
+                statusEl.textContent = 'Compilation error';
+                statusEl.className = 'status error';
+                log('Error: ' + err.message, 'error');
+            }
+
+            compileBtn.disabled = false;
+        }
+
+        function loadFile() {
+            document.getElementById('file-input').click();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('editor').value = e.target.result;
+                    log('Loaded file: ' + file.name, 'info');
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function downloadPDF() {
+            if (pdfBlob) {
+                const url = URL.createObjectURL(pdfBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'output.pdf';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // Initialize on load
+        window.onload = initEngine;
+    </script>
+</body>
+</html>

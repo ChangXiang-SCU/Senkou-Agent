@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SwiftLaTeX Test</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #1e1e1e; color: #fff; }
+        #log { background: #000; padding: 15px; font-family: monospace; font-size: 12px;
+               height: 400px; overflow-y: auto; white-space: pre-wrap; }
+        .error { color: #f66; }
+        .success { color: #6f6; }
+        .info { color: #6cf; }
+        button { padding: 10px 20px; margin: 10px 5px 10px 0; cursor: pointer; }
+        #pdf-frame { width: 100%; height: 500px; background: #fff; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h2>SwiftLaTeX Debug Test</h2>
+    <button onclick="testSimple()">Test Simple Document</button>
+    <button onclick="testResearch()">Test Research Statement</button>
+    <div id="log"></div>
+    <iframe id="pdf-frame" style="display:none;"></iframe>
+
+    <script src="pdftex.wasm/PdfTeXEngine.js"></script>
+    <script>
+        let engine = null;
+
+        function log(msg, type = 'info') {
+            const el = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            el.innerHTML += `<span class="${type}">[${time}] ${msg}</span>\n`;
+            el.scrollTop = el.scrollHeight;
+            console.log(msg);
+        }
+
+        // Simple test document
+        const simpleTex = `\\documentclass{article}
+\\begin{document}
+\\section{Hello World}
+This is a simple test. Math: $E = mc^2$
+\\end{document}
+`;
+
+        // Research statement (simplified - no complex packages)
+        const researchSimpleTex = `\\documentclass[10pt]{article}
+\\usepackage[margin=0.85in]{geometry}
+\\usepackage[hidelinks]{hyperref}
+
+\\begin{document}
+
+\\begin{center}
+{\\LARGE \\textbf{From Intent-AI Interaction to Brain-Inspired AI}}\\\\[6pt]
+{\\large Research Statement --- Zijian (Jason) Ding}\\\\[3pt]
+{\\normalsize University of Maryland, College Park | \\href{mailto:ding@umd.edu}{ding@umd.edu}}
+\\end{center}
+
+\\section*{Research Vision}
+
+My research investigates how \\textbf{intent}---the latent representation of human goals, constraints, and mental models---can serve as a bridge between human cognition and artificial intelligence.
+
+Rather than treating AI as an automated tool, I study how \\textbf{interaction structures} can externalize human thinking and, in turn, shape the internal reasoning mechanisms of AI systems.
+
+My long-term vision is to develop \\textbf{brain-inspired AI systems} grounded not in neural mimicry, but in \\textbf{functional alignment} with how humans reason, plan, and collaborate.
+
+\\section*{Thrust 1: Intent-Oriented Human--AI Interaction}
+
+A core limitation of current generative AI systems is that users must translate high-level intentions into low-level prompts. This translation burden increases cognitive load, reduces controllability, and often produces misalignment between users' goals and model outputs.
+
+\\subsection*{Key idea}
+Treat intent as a first-class interaction object: users manipulate goals, constraints, and evaluation criteria through interactive representations.
+
+\\section*{Thrust 2: Structuring Cognition with Shared Representations}
+
+Human reasoning is iterative: people generate candidates, compare trade-offs, revise hypotheses, and coordinate across mental models.
+
+\\section*{Thrust 3: Agentic Systems and Interactive World Models}
+
+As generative systems become agentic, the key challenge shifts from "how to prompt" to "how to steer and align an evolving system over time."
+
+\\section*{Toward Brain-Inspired AI: A Unified Future Agenda}
+
+My long-term agenda treats intent-oriented interaction as both (1) a practical paradigm for collaboration and (2) an empirical lens into cognition that can inspire AI system design.
+
+\\end{document}
+`;
+
+        async function initEngine() {
+            if (engine && engine.isReady()) {
+                log('Engine already loaded', 'success');
+                return true;
+            }
+
+            try {
+                log('Creating PdfTeX engine instance...');
+                engine = new PdfTeXEngine();
+
+                log('Loading engine (this downloads ~5MB WASM)...');
+                const startTime = Date.now();
+                await engine.loadEngine();
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+
+                log(`Engine loaded in ${elapsed}s`, 'success');
+                return true;
+            } catch (err) {
+                log('Failed to load engine: ' + err.message, 'error');
+                return false;
+            }
+        }
+
+        async function compile(texSource, name) {
+            log(`\\n=== Compiling: ${name} ===`);
+
+            if (!await initEngine()) return;
+
+            try {
+                log('Writing source to virtual filesystem...');
+                engine.writeMemFSFile("main.tex", texSource);
+                engine.setEngineMainFile("main.tex");
+
+                log('Starting compilation (may fetch packages from CTAN)...');
+                const startTime = Date.now();
+
+                // Add timeout
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Compilation timeout after 60s')), 60000)
+                );
+
+                const result = await Promise.race([
+                    engine.compileLaTeX(),
+                    timeoutPromise
+                ]);
+
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                log(`Compilation finished in ${elapsed}s`);
+
+                if (result.log) {
+                    // Check for errors in log
+                    const lines = result.log.split('\\n');
+                    let errorCount = 0;
+                    for (const line of lines) {
+                        if (line.includes('!') || line.toLowerCase().includes('error')) {
+                            log(line, 'error');
+                            errorCount++;
+                            if (errorCount > 10) {
+                                log('... (more errors truncated)', 'error');
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (result.pdf && result.pdf.length > 0) {
+                    log(`PDF generated: ${result.pdf.length} bytes`, 'success');
+                    const blob = new Blob([result.pdf], { type: 'application/pdf' });
+                    const url = URL.createObjectURL(blob);
+                    const frame = document.getElementById('pdf-frame');
+                    frame.src = url;
+                    frame.style.display = 'block';
+                } else {
+                    log('No PDF output!', 'error');
+                    log('Full log:\\n' + (result.log || 'No log available').substring(0, 2000), 'info');
+                }
+
+            } catch (err) {
+                log('Compilation error: ' + err.message, 'error');
+            }
+        }
+
+        function testSimple() {
+            compile(simpleTex, 'Simple Document');
+        }
+
+        function testResearch() {
+            compile(researchSimpleTex, 'Research Statement (Simplified)');
+        }
+
+        // Auto-init
+        window.onload = () => {
+            log('Page loaded. Click a button to test compilation.');
+            log('Note: First compilation downloads packages from CTAN (may be slow).');
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Statement - PDF Viewer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1e1e1e;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: #333;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #555;
+        }
+        .header h1 { font-size: 16px; }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            background: #0e639c;
+            color: white;
+        }
+        .btn:hover { background: #1177bb; }
+        .btn:disabled { background: #555; cursor: not-allowed; }
+        .status {
+            margin-left: auto;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            background: #2d2d2d;
+        }
+        .status.loading { color: #dcdcaa; }
+        .status.ready { color: #4ec9b0; }
+        .status.error { color: #f48771; }
+        .main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #pdf-viewer {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+        }
+        .loading-screen {
+            text-align: center;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #333;
+            border-top-color: #0e639c;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .log {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #888;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Jason Research Statement</h1>
+        <button class="btn" id="recompile-btn" onclick="compile()" disabled>Recompile</button>
+        <button class="btn" id="download-btn" onclick="downloadPDF()" disabled>Download PDF</button>
+        <span class="status loading" id="status">Initializing...</span>
+    </div>
+    <div class="main" id="main">
+        <div class="loading-screen" id="loading">
+            <div class="spinner"></div>
+            <div>Loading LaTeX engine and compiling...</div>
+            <div class="log" id="log"></div>
+        </div>
+    </div>
+
+    <script src="pdftex.wasm/PdfTeXEngine.js"></script>
+    <script>
+        let engine = null;
+        let pdfBlob = null;
+
+        // The LaTeX source - embedded directly
+        const texSource = `\\documentclass[10pt]{article}
+
+% ===== Layout =====
+\\usepackage[margin=0.85in]{geometry}
+\\usepackage{times}
+\\usepackage{microtype}
+\\usepackage[hidelinks]{hyperref}
+
+% ===== Asymmetric columns =====
+\\usepackage{paracol}
+\\columnratio{0.70,0.30}
+\\setlength{\\columnsep}{20pt}
+
+% ===== Typography / spacing =====
+\\usepackage{setspace}
+\\setstretch{1.06}
+\\setlength{\\parindent}{0pt}
+\\setlength{\\parskip}{6pt}
+
+% ===== Lists =====
+\\usepackage{enumitem}
+\\setlist[itemize]{leftmargin=*, itemsep=3pt, topsep=3pt, parsep=0pt}
+
+% ===== Figures / boxes =====
+\\usepackage{graphicx}
+\\usepackage{xcolor}
+\\usepackage{tcolorbox}
+\\tcbuselibrary{skins,breakable}
+
+% ===== Section style =====
+\\usepackage{titlesec}
+\\titleformat{\\section}{\\Large\\bfseries}{\\thesection}{0.6em}{}
+\\titlespacing*{\\section}{0pt}{10pt}{6pt}
+\\titleformat{\\subsection}{\\normalsize\\bfseries}{\\thesubsection}{0.6em}{}
+\\titlespacing*{\\subsection}{0pt}{6pt}{4pt}
+
+% ===== Colors =====
+\\definecolor{SidebarGray}{HTML}{F5F6F8}
+\\definecolor{SidebarLine}{HTML}{D8DADF}
+\\definecolor{SidebarHeader}{HTML}{E5E7EB}
+\\definecolor{TextDark}{HTML}{111827}
+
+% ===== Sidebar box =====
+\\newtcolorbox{SideBox}[1]{
+  enhanced,
+  breakable,
+  colback=SidebarGray,
+  colframe=SidebarLine,
+  boxrule=0.6pt,
+  arc=3pt,
+  left=8pt,right=8pt,top=7pt,bottom=7pt,
+  fonttitle=\\small\\bfseries,
+  coltitle=TextDark,
+  title=#1,
+  attach boxed title to top left={
+    xshift=0pt,
+    yshift=-2mm
+  },
+  boxed title style={
+    colback=SidebarHeader,
+    colframe=SidebarLine,
+    boxrule=0.6pt,
+    arc=3pt,
+    left=6pt,right=6pt,top=3pt,bottom=3pt
+  },
+  drop shadow=black!10
+}
+
+% ===== Figure wrapper for sidebar =====
+\\newcommand{\\SideFigure}[2]{%
+  \\vspace{4pt}
+  \\begin{tcolorbox}[
+    colback=white,
+    colframe=SidebarLine,
+    boxrule=0.5pt,
+    arc=3pt,
+    left=4pt,right=4pt,top=4pt,bottom=4pt
+  ]
+  \\includegraphics[width=\\linewidth]{#1}
+  \\end{tcolorbox}
+  {\\scriptsize #2}\\par
+}
+
+% ===== A compact paper item =====
+\\newcommand{\\Paper}[2]{\\item \\textbf{#1} {\\scriptsize #2}}
+
+\\begin{document}
+
+% ===== Title block =====
+\\begin{center}
+{\\LARGE \\textbf{From Intent-AI Interaction to Brain-Inspired AI}}\\\\[-1pt]
+{\\large Research Statement --- Zijian (Jason) Ding}\\\\[3pt]
+{\\normalsize University of Maryland, College Park \\ \\textbar\\  \\href{mailto:ding@umd.edu}{ding@umd.edu}}
+\\end{center}
+
+\\vspace{6pt}
+
+\\begin{paracol}{2}
+
+% ===================== LEFT (Main text) =====================
+\\section*{Research Vision}
+
+My research investigates how \\textbf{intent}---the latent representation of human goals, constraints, and mental models---can serve as a bridge between human cognition and artificial intelligence.
+Rather than treating AI as an automated tool, I study how \\textbf{interaction structures} can externalize human thinking and, in turn, shape the internal reasoning mechanisms of AI systems.
+My long-term vision is to develop \\textbf{brain-inspired AI systems} grounded not in neural mimicry, but in \\textbf{functional alignment} with how humans reason, plan, and collaborate.
+
+This vision is organized into three thrusts that connect my past work in Human-Centered AI to a future agenda on cognitively grounded, brain-inspired AI.
+
+% ===================== RIGHT (Sidebar) =====================
+\\switchcolumn
+\\begin{SideBox}{Roadmap at a Glance}
+\\begin{itemize}
+  \\item \\textbf{Thrust 1:} Intent-oriented Human--AI Interaction
+  \\item \\textbf{Thrust 2:} Structured Cognition via Shared Representations
+  \\item \\textbf{Thrust 3:} Agentic Systems \\& Interactive World Models
+\\end{itemize}
+
+\\vspace{4pt}
+\\noindent\\textbf{Representative Outputs}
+\\begin{itemize}
+  \\item CHI, CSCW, C\\&C, EMNLP, IUI, VL/HCC, CHI PLAY, DIS
+  \\item Industry impact: Microsoft Copilot demos; patent; product contributions
+\\end{itemize}
+\\end{SideBox}
+
+% ===================== BACK TO LEFT =====================
+\\switchcolumn*
+
+\\section*{Thrust 1: Intent-Oriented Human--AI Interaction}
+
+A core limitation of current generative AI systems is that users must translate high-level intentions into low-level prompts.
+This translation burden increases cognitive load, reduces controllability, and often produces misalignment between users' goals and model outputs.
+My work advances \\textbf{Intent-oriented Interaction} as a paradigm that elevates collaboration from command execution to \\textbf{conceptual alignment}.
+
+\\subsection*{Key idea}
+Treat intent as a first-class interaction object: users manipulate goals, constraints, and evaluation criteria through interactive representations, while AI systems respond to these structured signals rather than isolated prompts.
+
+\\subsection*{Methods and outcomes}
+I combine empirical studies, system building, and evaluations in real tasks (e.g., writing, ideation, sensemaking) to identify interaction primitives for intent elicitation, revision, and negotiation.
+
+% ----- Sidebar Thrust 1 -----
+\\switchcolumn
+\\begin{SideBox}{Thrust 1 Evidence: Papers \\& Systems}
+\\noindent\\textbf{Selected papers}
+\\begin{itemize}
+  \\Paper{EMNLP'23 Findings}{Human--LLM interaction through the lens of news headline generation.}
+  \\Paper{CHI'24}{Example presentation interfaces shape problem solving (formulating vs.\\ fixating).}
+  \\Paper{IUI'24 DC}{Design space of human--AI interaction via task creativity \\& complexity.}
+  \\Paper{CHI'26}{LLMs as colleagues: multi-agent system for structured professional ideation.}
+\\end{itemize}
+\\end{SideBox}
+
+% ===================== BACK TO LEFT =====================
+\\switchcolumn*
+
+\\section*{Thrust 2: Structuring Cognition with Shared Representations}
+
+Human reasoning is iterative: people generate candidates, compare trade-offs, revise hypotheses, and coordinate across mental models.
+Prompt-only interaction collapses this process into a single channel, making it hard to inspect, edit, or accumulate reasoning.
+My work designs \\textbf{interactive shared representations} (e.g., diagrams, structured workspaces) that externalize cognition into manipulable artifacts.
+
+These representations act as \\textbf{cognitive scaffolds} (for humans) and \\textbf{coordination substrates} (for AI), enabling mixed-initiative collaboration and reducing hidden-state divergence.
+
+% ----- Sidebar Thrust 2 -----
+\\switchcolumn
+\\begin{SideBox}{Thrust 2 Evidence: Papers \\& Artifacts}
+\\noindent\\textbf{Selected papers}
+\\begin{itemize}
+  \\Paper{C\\&C'25}{Interactive shared representation for GenAI-assisted hypothesis exploration.}
+  \\Paper{IUI'25 Demo}{Companion demo of the shared representation system.}
+  \\Paper{C\\&C'23}{LLM-assisted cross-domain analogical creativity (honorable mention).}
+  \\Paper{CHI'21 / CSCW'21 / C\\&C'21}{Scaffolding novice and community design processes.}
+\\end{itemize}
+\\end{SideBox}
+
+% ===================== BACK TO LEFT =====================
+\\switchcolumn*
+
+\\section*{Thrust 3: Agentic Systems and Interactive World Models}
+
+As generative systems become agentic, the key challenge shifts from \\`\\`how to prompt'' to \\`\\`how to steer and align an evolving system over time.''
+In this thrust, I explore agentic workflows and interactive world models where AI systems maintain longer-horizon state representations of goals, consequences, and trade-offs.
+
+These systems create testbeds for cognitively grounded mechanisms: hierarchical planning, counterfactual reasoning, and theory-of-mind-like user modeling---advancing a functional path toward brain-inspired AI.
+
+% ----- Sidebar Thrust 3 -----
+\\switchcolumn
+\\begin{SideBox}{Thrust 3 Evidence: Papers \\& Prototypes}
+\\noindent\\textbf{Selected papers}
+\\begin{itemize}
+  \\Paper{CHI'25}{Multimodal agents prompt player actions and show consequences (sustainability).}
+  \\Paper{VL/HCC'25}{Frontend Diffusion: agentic workflows for self-representation.}
+  \\Paper{CHI PLAY'26}{Career simulation via interactive world model (under review).}
+  \\Paper{DIS'26}{LLM interface for iterative revision of trade-offs (under review).}
+\\end{itemize}
+\\end{SideBox}
+
+% ===================== BACK TO LEFT =====================
+\\switchcolumn*
+
+\\section*{Toward Brain-Inspired AI: A Unified Future Agenda}
+
+My long-term agenda treats intent-oriented interaction as both (1) a practical paradigm for collaboration and (2) an empirical lens into cognition that can inspire AI system design.
+I focus on: (i) computational intent models as dynamic, hierarchical state; (ii) cognitively grounded agent architectures integrating planning and memory; and (iii) an interaction-to-mechanism pipeline that uses interface traces to evaluate and refine AI cognition.
+
+\\end{paracol}
+
+\\end{document}
+`;
+
+        function log(msg) {
+            const el = document.getElementById('log');
+            el.innerHTML += msg + '<br>';
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function setStatus(text, type) {
+            const el = document.getElementById('status');
+            el.textContent = text;
+            el.className = 'status ' + type;
+        }
+
+        async function init() {
+            try {
+                log('Loading PdfTeX engine...');
+                engine = new PdfTeXEngine();
+                await engine.loadEngine();
+                log('Engine ready. Compiling...');
+                await compile();
+            } catch (err) {
+                setStatus('Error: ' + err.message, 'error');
+                log('Error: ' + err.message);
+            }
+        }
+
+        async function compile() {
+            if (!engine || !engine.isReady()) {
+                log('Engine not ready');
+                return;
+            }
+
+            setStatus('Compiling...', 'loading');
+            document.getElementById('recompile-btn').disabled = true;
+
+            try {
+                log('Writing source file...');
+                engine.writeMemFSFile("main.tex", texSource);
+                engine.setEngineMainFile("main.tex");
+
+                log('Running LaTeX (fetching packages from CTAN)...');
+                const result = await engine.compileLaTeX();
+
+                if (result.pdf) {
+                    pdfBlob = new Blob([result.pdf], { type: 'application/pdf' });
+                    const pdfUrl = URL.createObjectURL(pdfBlob);
+
+                    document.getElementById('main').innerHTML =
+                        '<iframe id="pdf-viewer" src="' + pdfUrl + '"></iframe>';
+
+                    setStatus('Ready', 'ready');
+                    document.getElementById('recompile-btn').disabled = false;
+                    document.getElementById('download-btn').disabled = false;
+                } else {
+                    setStatus('Compilation failed', 'error');
+                    log('No PDF generated');
+                    if (result.log) {
+                        log('Error log: ' + result.log.substring(0, 500));
+                    }
+                }
+            } catch (err) {
+                setStatus('Error', 'error');
+                log('Error: ' + err.message);
+            }
+
+            document.getElementById('recompile-btn').disabled = false;
+        }
+
+        function downloadPDF() {
+            if (pdfBlob) {
+                const url = URL.createObjectURL(pdfBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'research_statement.pdf';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

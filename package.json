@@ -1,0 +1,28 @@
+{
+  "name": "swiftlatex",
+  "version": "1.0.0",
+  "description": "Demo Website https://www.swiftlatex.com",
+  "main": "DvipdfmxEngine.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SwiftLaTeX/SwiftLaTeX.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/SwiftLaTeX/SwiftLaTeX/issues"
+  },
+  "homepage": "https://github.com/SwiftLaTeX/SwiftLaTeX#readme",
+  "dependencies": {
+    "chokidar": "^5.0.0",
+    "express": "^5.2.1",
+    "node-ical": "^0.25.3",
+    "pdf-parse": "^1.1.1",
+    "playwright": "^1.58.2"
+  }
+}

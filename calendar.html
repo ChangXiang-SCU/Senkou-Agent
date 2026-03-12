@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftLaTeX Calendar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --accent-color: #3b82f6;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --card-radius: 12px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #0f172a;
+                --bg-secondary: #1e293b;
+                --bg-tertiary: #334155;
+                --text-primary: #f1f5f9;
+                --text-secondary: #cbd5e1;
+                --text-muted: #64748b;
+                --accent-color: #60a5fa;
+                --border-color: #334155;
+                --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+                --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+            }
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--bg-primary);
+            padding: 16px 32px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .nav-btn {
+            text-decoration: none;
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .calendar-container {
+            flex: 1;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            background: var(--bg-primary);
+            border-radius: var(--card-radius);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .calendar-grid-wrapper {
+            background: var(--bg-primary);
+            border-radius: var(--card-radius);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .calendar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .month-year {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .calendar-controls button {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .calendar-controls button:hover {
+            background: var(--bg-secondary);
+        }
+
+        .days-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+        }
+
+        .day-label {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .date-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .calendar-day {
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            min-height: 100px;
+            padding: 8px;
+            position: relative;
+        }
+
+        .calendar-day.other-month {
+            background: var(--bg-secondary);
+            color: var(--text-muted);
+        }
+
+        .calendar-day.today {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .day-number {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .today .day-number {
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+
+        .event-chip {
+            background: var(--bg-tertiary);
+            border-left: 3px solid var(--accent-color);
+            padding: 4px 6px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: transform 0.1s;
+        }
+
+        .event-chip:hover {
+            transform: translateY(-1px);
+            filter: brightness(0.95);
+        }
+
+        .event-chip.urgent {
+            border-left-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .event-chip.soon {
+            border-left-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .event-chip.safe {
+            border-left-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            padding: 24px;
+            border-radius: 12px;
+            width: 600px;
+            max-width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .list-item {
+            padding: 12px;
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .list-item:hover {
+            border-color: var(--accent-color);
+        }
+
+        .item-title {
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .item-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="header-left">
+            <a href="/dashboard.html" class="nav-btn">← Back to Dashboard</a>
+            <h1>📅 Calendar</h1>
+        </div>
+        <div>
+            <!-- Global Actions can go here -->
+            <button onclick="fetchFullContent()"
+                style="background:var(--accent-color); color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:500;">
+                🕷️ Sync Canvas
+            </button>
+        </div>
+    </header>
+
+    <div class="calendar-container">
+        <!-- Sidebar: Upcoming List & Filters -->
+        <div class="sidebar">
+            <div>
+                <div class="sidebar-title">Upcoming Deadlines</div>
+                <div id="upcoming-list">Loading...</div>
+            </div>
+
+            <div style="margin-top:auto; padding-top:20px; border-top:1px solid var(--border-color);">
+                <div class="sidebar-title">Sources</div>
+                <div style="display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:8px;">
+                    <div style="width:10px; height:10px; background:#ef4444; border-radius:2px;"></div> Canvas (Urgent)
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:8px;">
+                    <div style="width:10px; height:10px; background:#f59e0b; border-radius:2px;"></div> Canvas (Soon)
+                </div>
+                <!-- Future Google Calendar items could go here -->
+            </div>
+        </div>
+
+        <!-- Main Calendar Grid -->
+        <div class="calendar-grid-wrapper">
+            <div class="calendar-header">
+                <div class="month-year" id="current-month-year">...</div>
+                <div class="calendar-controls">
+                    <button onclick="changeMonth(-1)">◀</button>
+                    <button onclick="gotoToday()">Today</button>
+                    <button onclick="changeMonth(1)">▶</button>
+                </div>
+            </div>
+            <div class="days-header">
+                <div class="day-label">Sun</div>
+                <div class="day-label">Mon</div>
+                <div class="day-label">Tue</div>
+                <div class="day-label">Wed</div>
+                <div class="day-label">Thu</div>
+                <div class="day-label">Fri</div>
+                <div class="day-label">Sat</div>
+            </div>
+            <div class="date-grid" id="calendar-grid">
+                <!-- Days injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment Detail Modal (Reused) -->
+    <div id="assignmentModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeAssignmentModal()">×</button>
+            <h2 id="modalTitle" style="margin-top:0; margin-bottom:8px;">Title</h2>
+            <div id="modalMeta"
+                style="color:var(--text-muted); font-size:14px; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--border-color);">
+                Course | Due Date
+            </div>
+            <div id="modalBody" style="line-height:1.6; color:var(--text-secondary);"></div>
+            <div id="modalFiles" style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border-color);">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let deadlines = [];
+        let fullAssignments = [];
+
+        async function init() {
+            await loadData();
+            renderCalendar();
+            renderSidebar();
+        }
+
+        async function loadData() {
+            try {
+                // Fetch ICS Deadlines
+                const resICS = await fetch('/api/canvas/deadlines');
+                const dataICS = await resICS.json();
+                deadlines = dataICS.deadlines || [];
+
+                // Fetch Full Scraped Details
+                const resFull = await fetch('/api/canvas/assignments');
+                if (resFull.ok) fullAssignments = await resFull.json();
+            } catch (e) {
+                console.error("Error loading data:", e);
+            }
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const monthYear = document.getElementById('current-month-year');
+            grid.innerHTML = '';
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            monthYear.innerText = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+
+            // Days from prev month
+            const startDayOfWeek = firstDay.getDay(); // 0 (Sun) - 6 (Sat)
+            const prevLastDay = new Date(year, month, 0).getDate();
+
+            for (let i = startDayOfWeek - 1; i >= 0; i--) {
+                const d = prevLastDay - i;
+                const cell = createDayCell(d, true);
+                grid.appendChild(cell);
+            }
+
+            // Days of current month
+            const today = new Date();
+            for (let i = 1; i <= lastDay.getDate(); i++) {
+                const isToday = (i === today.getDate() && month === today.getMonth() && year === today.getFullYear());
+                const cell = createDayCell(i, false, isToday);
+
+                // Find events for this day
+                const dayEvents = deadlines.filter(ev => {
+                    const d = new Date(ev.due);
+                    return d.getDate() === i && d.getMonth() === month && d.getFullYear() === year;
+                });
+
+                dayEvents.forEach(ev => {
+                    const chip = createEventChip(ev);
+                    cell.appendChild(chip);
+                });
+
+                grid.appendChild(cell);
+            }
+
+            // Days of next month
+            const totalCells = startDayOfWeek + lastDay.getDate();
+            const remaining = 42 - totalCells; // 6 rows * 7 cols
+            // If we don't need 6 rows, maybe 35 (5 rows)
+            const rowsNeeded = Math.ceil(totalCells / 7);
+            const nextDays = (rowsNeeded * 7) - totalCells;
+
+            for (let i = 1; i <= nextDays; i++) {
+                const cell = createDayCell(i, true);
+                grid.appendChild(cell);
+            }
+        }
+
+        function createDayCell(dayNum, isOtherMonth, isToday) {
+            const div = document.createElement('div');
+            div.className = `calendar-day ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}`;
+            div.innerHTML = `<span class="day-number">${dayNum}</span>`;
+            return div;
+        }
+
+        function createEventChip(ev) {
+            const chip = document.createElement('div');
+            const due = new Date(ev.due);
+            const now = new Date();
+            const diffDays = (due - now) / (1000 * 60 * 60 * 24);
+
+            let statusClass = 'safe';
+            if (diffDays < 0) statusClass = 'safe'; // Past treated as safe/done
+            else if (diffDays <= 3) statusClass = 'urgent';
+            else if (diffDays <= 7) statusClass = 'soon';
+
+            chip.className = `event-chip ${statusClass}`;
+            chip.innerText = ev.title; // Or ev.course + ': ' + ev.title
+            chip.title = `${ev.course}: ${ev.title} (Due ${due.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`;
+
+            chip.onclick = (e) => {
+                e.stopPropagation();
+                openDetail(ev);
+            };
+            return chip;
+        }
+
+        function renderSidebar() {
+            const list = document.getElementById('upcoming-list');
+            // Filter future events only for sidebar
+            const now = new Date();
+            const upcoming = deadlines.filter(d => new Date(d.due) > now).slice(0, 5); // Limit 5
+
+            if (upcoming.length === 0) {
+                list.innerHTML = '<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:20px;">No upcoming deadlines</div>';
+                return;
+            }
+
+            list.innerHTML = upcoming.map(d => {
+                const due = new Date(d.due);
+                return `
+                    <div class="list-item" onclick="openDetailProxy('${d.uid}')">
+                        <div class="item-title">${d.title}</div>
+                        <div class="item-meta">
+                            <span>${d.course}</span>
+                            <span>${due.toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- Navigation ---
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
+        }
+        function gotoToday() {
+            currentDate = new Date();
+            renderCalendar();
+        }
+
+        // --- Detail Modal Logic (Similar to Dashboard) ---
+        function openDetailProxy(uid) {
+            const ev = deadlines.find(d => d.uid === uid);
+            if (ev) openDetail(ev);
+        }
+
+        function openDetail(ev) {
+            const modal = document.getElementById('assignmentModal');
+            // Find full assignment match
+            const cleanTitle = ev.title.replace(/\[.*?\]/g, '').replace(/\bDue\b/i, '').trim().toLowerCase();
+            const match = fullAssignments.find(a => {
+                const aName = a.name.toLowerCase();
+                return aName.includes(cleanTitle) || cleanTitle.includes(aName) ||
+                    (a.course_code && ev.course && a.course_code.includes(ev.course) && aName.includes(cleanTitle.split(':')[0]));
+            });
+
+            document.getElementById('modalTitle').innerText = ev.title;
+            const due = new Date(ev.due);
+            document.getElementById('modalMeta').innerText = `${ev.course} • Due ${due.toLocaleString()}`;
+
+            const body = document.getElementById('modalBody');
+            const files = document.getElementById('modalFiles');
+
+            if (match) {
+                body.innerHTML = match.description || 'No description available.';
+                // Links/Files (heuristic finding links in description or if API provided attachments)
+                files.innerHTML = `<a href="${match.html_url}" target="_blank" style="color:var(--accent-color); text-decoration:none;">🔗 Open in Canvas</a>`;
+            } else {
+                body.innerText = ev.description || 'No details available (Scraper sync needed).';
+                files.innerHTML = ev.url ? `<a href="${ev.url}" target="_blank" style="color:var(--accent-color); text-decoration:none;">🔗 Link</a>` : '';
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeAssignmentModal() {
+            document.getElementById('assignmentModal').style.display = 'none';
+        }
+
+        // Close on outside click
+        window.onclick = function (event) {
+            const modal = document.getElementById('assignmentModal');
+            if (event.target == modal) {
+                closeAssignmentModal();
+            }
+        }
+
+        // --- Scraper Trigger ---
+        async function fetchFullContent() {
+            if (!confirm('Start Canvas Scraper? This will open a browser window.')) return;
+            try {
+                const btn = document.querySelector('button[onclick="fetchFullContent()"]');
+                const originalText = btn.innerText;
+                btn.innerText = '🕷️ Running...';
+                btn.disabled = true;
+
+                const res = await fetch('/api/canvas/scrape', { method: 'POST' });
+                const data = await res.json();
+
+                if (data.success) {
+                    alert('Scraper started! Please complete login in the popup window if needed.');
+                    // Poll for completion? For now just wait and reload data after some time or let user reload
+                    setTimeout(() => {
+                        loadData().then(() => {
+                            renderCalendar();
+                            btn.innerText = originalText;
+                            btn.disabled = false;
+                        });
+                    }, 10000); // 10s wait first check
+                } else {
+                    alert('Error: ' + data.error);
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                alert('Network error');
+            }
+        }
+
+        // Init
+        init();
+    </script>
+</body>
+
+</html>

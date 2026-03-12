@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# User config (contains API keys)
+config.json
+
+# User projects data
+projects/
+
+# Compilation logs
+output/
+
+# Canvas session data
+scrapers/session.json
+data/canvas/
+
+# Temp/debug files
+out.log
+temp_*.js
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/

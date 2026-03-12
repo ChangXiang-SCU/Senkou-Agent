@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Claude LaTeX - Paper Analysis</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111113;
+            --bg-tertiary: #18181b;
+            --bg-hover: #1f1f23;
+            --border-color: #27272a;
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-purple: #a855f7;
+            --accent-red: #ef4444;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            margin-top: 4px;
+            font-size: 14px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--accent-blue);
+        }
+
+        .card-header {
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .project-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .project-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: var(--bg-tertiary);
+            padding: 12px;
+            border-radius: var(--radius-md);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .progress-section {
+            margin-top: 16px;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar-bg {
+            background: var(--bg-tertiary);
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--accent-green);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .tag {
+            font-size: 11px;
+            padding: 4px 8px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            width: 800px;
+            max-width: 90%;
+            max-height: 80vh;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .section-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .section-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .section-title {
+            font-weight: 500;
+        }
+
+        .section-preview {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 500px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 500px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            padding: 32px;
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 24px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <div class="title">Paper Analysis Dashboard</div>
+                <div class="subtitle">Overview of your research projects and progress</div>
+            </div>
+            <div style="display: flex; gap: 16px; align-items: center;">
+                <a href="calendar.html"
+                    style="text-decoration:none; color:var(--text-secondary); font-weight:500; display:flex; align-items:center; gap:6px; font-size:14px; padding:8px 12px; border-radius:6px; transition:bg 0.2s;"
+                    onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='none'">
+                    📅 Calendar
+                </a>
+                <button onclick="openAiSettingsModal()"
+                    style="background: transparent; color: var(--accent-purple); border: 1px solid var(--accent-purple); padding: 8px 16px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500;">🤖
+                    AI Settings
+                </button>
+                <button onclick="openCreateProjectModal()"
+                    style="background: var(--accent-blue); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500;"><svg
+                        width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>New Project </button><button onclick="openGitHubModal()"
+                    style="background: #24292e; color: white; border: 1px solid #444; padding: 8px 16px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;"><svg
+                        height="20" viewBox="0 0 16 16" version="1.1" width="20" aria-hidden="true"
+                        style="fill: currentColor">
+                        <path fill-rule="evenodd"
+                            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+                        </path>
+                    </svg>Import from GitHub </button><button onclick="openOverleafModal()"
+                    style="background: #47A141; color: white; border: 1px solid #3d8b38; padding: 8px 16px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px;">☁
+                    Import from Overleaf </button><a href="compile.html"
+                    style="color: var(--accent-blue); text-decoration: none; font-size: 14px;">Back to Editor &rarr;
+                </a>
+            </div>
+        </div>
+        <!-- Quick Actions & Summaries -->
+        <div style="margin-bottom: 32px; display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
+            <!-- Canvas / Integrations -->
+            <div
+                style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <div style="font-weight:600; font-size:16px;">📚 Canvas Integration</div>
+                    <div style="font-size:12px; color:var(--text-muted);" id="canvas-status">Not synced recently</div>
+                </div>
+                <div style="display:flex; gap:12px;">
+                    <button onclick="startScraper()"
+                        style="flex:1; background:var(--accent-purple); color:white; border:none; padding:10px; border-radius:6px; font-size:13px; cursor:pointer; font-weight:500;">
+                        🕷️ Fetch Full Content
+                    </button>
+                    <button onclick="window.location.href='calendar.html'"
+                        style="flex:1; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); padding:10px; border-radius:6px; font-size:13px; cursor:pointer;">
+                        📅 Open Calendar
+                    </button>
+                    <button onclick="toggleCanvasConfig()"
+                        style="width:40px; background:none; border:1px solid var(--border-color); border-radius:6px; cursor:pointer;">⚙️</button>
+                </div>
+
+                <!-- Hidden Config (Toggleable) -->
+                <div id="canvas-config"
+                    style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border-color);">
+                    <p style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">Canvas Calendar Feed URL
+                        (.ics)</p>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="canvas-ics-url" placeholder="https://canvas.instructure.com/feeds/..."
+                            style="flex:1; padding:8px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:12px;">
+                        <button onclick="saveCanvasConfig()"
+                            style="padding:8px 12px; background:var(--accent-blue); border:none; border-radius:6px; color:white; font-size:12px; cursor:pointer;">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity / Stats (Placeholder for future) -->
+            <div
+                style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:14px;">
+                Your recent project activity will appear here.
+            </div>
+        </div>
+        <div id="projectGrid" class="grid">
+            <div class="loading">Loading projects...</div>
+        </div>
+    </div>
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle" class="modal-title">Project Details</h2><button class="close-btn"
+                    onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+    <div id="githubModal" class="modal">
+        <div class="modal-content" style="width: 600px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Import from GitHub</h2><button class="close-btn"
+                    onclick="closeGitHubModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 20px;"><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 14px;">GitHub
+                        Personal Access Token (PAT)</label>
+                    <div style="display: flex; gap: 10px;"><input type="password" id="githubToken"
+                            placeholder="ghp_xxxxxxxxxxxx"
+                            style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: white;"><button
+                            onclick="fetchGitHubRepos()"
+                            style="background: var(--accent-blue); color: white; border: none; padding: 0 20px; border-radius: 6px; cursor: pointer;">Connect</button>
+                    </div>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Token is stored locally in
+                        your browser. Requires 'repo' scope.</p>
+                </div>
+                <div id="repoList" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Repos will be listed here -->
+                    <div style="text-align: center; color: var(--text-muted); padding: 40px;">Enter your token to
+                        list repositories. </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="overleafModal" class="modal">
+        <div class="modal-content" style="width: 500px;">
+            <div class="modal-header">
+                <h2 class="modal-title">☁ Import from Overleaf</h2><button class="close-btn"
+                    onclick="document.getElementById('overleafModal').style.display='none'">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 16px;"><label
+                        style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 13px;">Overleaf
+                        Git URL</label><input type="text" id="overleafCloneUrl"
+                        placeholder="https://git@git.overleaf.com/xxxxxxxxxxxx"
+                        style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: white; font-size: 13px;">
+                    <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">打开 Overleaf 项目 → Menu → Git →
+                        复制 clone 命令中的 URL</p>
+                </div>
+                <div style="margin-bottom: 16px;"><label
+                        style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 13px;">Authentication
+                        Token (令牌)</label><input type="password" id="overleafCloneToken" placeholder="olp_xxxxxxxxxxxx"
+                        style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: white; font-size: 13px;">
+                    <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">在同一页面复制 token，仅显示一次</p>
+                </div>
+                <div style="margin-bottom: 20px;"><label
+                        style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 13px;">项目名称
+                        (可选)</label><input type="text" id="overleafProjectName" placeholder="my-overleaf-project"
+                        style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: white; font-size: 13px;">
+                </div><button id="overleafCloneBtn" onclick="cloneFromOverleaf()"
+                    style="width: 100%; padding: 12px; background: #47A141; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">Clone
+                    Project</button>
+                <div id="overleafCloneResult" style="margin-top: 12px;"></div>
+            </div>
+        </div>
+    </div>
+    <div id="createProjectModal" class="modal">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-header">
+                <h2 class="modal-title">✨ Create New Project</h2><button class="close-btn"
+                    onclick="document.getElementById('createProjectModal').style.display='none'">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 20px;"><label
+                        style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 13px;">Project
+                        Name</label><input type="text" id="newProjectName" placeholder="my-awesome-paper"
+                        style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: white; font-size: 13px;">
+                </div>
+                <div style="margin-bottom: 20px;"><label
+                        style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 13px;">Template</label><select
+                        id="newProjectTemplate"
+                        style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: white; font-size: 13px;">
+                        <option value="article">Standard Article</option>
+                        <option value="blank">Blank Project</option>
+                    </select></div><button id="createProjectBtn" onclick="createProject()"
+                    style="width: 100%; padding: 12px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">Create
+                    Project</button>
+                <div id="createProjectResult" style="margin-top: 12px;"></div>
+            </div>
+        </div>
+    </div>
+    <!-- Assignment Detail Modal -->
+    <div id="assignmentModal" class="modal">
+        <div class="modal-content"><button class="modal-close" onclick="closeAssignmentModal()">&times;
+            </button>
+            <h2 id="modalTitle" style="margin-top:0; margin-bottom:8px;">Assignment Title</h2>
+            <div id="modalMeta"
+                style="color:var(--text-muted); font-size:14px; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--border-color);">
+                Course | Due Date </div>
+            <div id="modalBody" style="line-height:1.6; color:var(--text-secondary);">
+                <!-- HTML Content -->
+            </div>
+            <div id="modalFiles" style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border-color);">
+                <!-- Files links -->
+            </div>
+        </div>
+    </div>
+    <!-- Assignment Detail Modal -->
+    <div id="assignmentModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeAssignmentModal()">&times;</button>
+            <h2 id="modalTitle" style="margin-top:0; margin-bottom:8px;">Assignment Title</h2>
+            <div id="modalMeta"
+                style="color:var(--text-muted); font-size:14px; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--border-color);">
+                Course | Due Date
+            </div>
+            <div id="modalBody" style="line-height:1.6; color:var(--text-secondary);">
+                <!-- HTML Content -->
+            </div>
+            <div id="modalFiles" style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border-color);">
+                <!-- Files links -->
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Settings Modal -->
+    <div id="aiSettingsModal" class="modal">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-header">
+                <h2 class="modal-title">🤖 AI Settings</h2><button class="close-btn"
+                    onclick="closeAiSettingsModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">Configure the OpenAI API
+                    Key to power the SwiftLaTeX AI Agent inside your workspaces.</p>
+                <div style="margin-bottom: 20px;">
+                    <label
+                        style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 13px;">OpenAI
+                        API Key</label>
+                    <input type="password" id="openaiApiKey" placeholder="sk-..."
+                        style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: white; font-size: 13px;">
+                </div>
+                <button onclick="saveAiConfig()"
+                    style="width: 100%; padding: 12px; background: var(--accent-purple); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                    Save Configuration
+                </button>
+                <div id="aiConfigResult" style="margin-top: 12px; font-size: 13px; text-align: center;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script> // Emergency Error Handler
+
+        window.onerror = function (msg, url, line, col, error) {
+            const log = document.createElement('div');
+            log.style.cssText = 'position:fixed; top:10px; left:10px; right:10px; background:#ef4444; color:white; padding:12px; z-index:9999; border-radius:8px; font-family:monospace; box-shadow:0 4px 6px rgba(0,0,0,0.3);';
+
+            log.textContent = `JS Error: ${msg
+                }
+
+            (Line ${line
+                })`;
+            document.body.appendChild(log);
+            return false;
+        }
+
+            ;
+
+        async function fetchProjects() {
+            try {
+                console.log('Fetching projects...');
+                const res = await fetch('/api/projects');
+                const projects = await res.json();
+                renderProjects(projects);
+            }
+
+            catch (err) {
+                console.error(err);
+                document.getElementById('projectGrid').innerHTML = '<div class="loading">Failed to load projects. Make sure server API is reachable.</div>';
+            }
+        }
+
+        async function renderProjects(projects) {
+            const grid = document.getElementById('projectGrid');
+            grid.innerHTML = '';
+
+            if (!projects || projects.length === 0) {
+                grid.innerHTML = '<div class="loading">No projects found. Add a project folder in "projects".</div>';
+                return;
+            }
+
+            // Group projects by top-level folder
+            const groups = {};
+            for (const p of projects) {
+                let groupName = 'Local Projects';
+                let displayName = p.name;
+                if (p.name.includes('/')) {
+                    const parts = p.name.split('/');
+                    groupName = parts[0];
+                    displayName = parts.slice(1).join('/');
+                }
+                if (!groups[groupName]) groups[groupName] = [];
+                // add display name
+                groups[groupName].push({ ...p, displayName });
+            }
+
+            // Render groups
+            for (const [groupName, groupProjects] of Object.entries(groups)) {
+                // Add group header
+                const header = document.createElement('div');
+                header.style.cssText = 'grid-column: 1 / -1; margin-top: 32px; margin-bottom: 12px; font-size: 20px; font-weight: 600; color: var(--text-primary); border-bottom: 2px solid var(--border-color); padding-bottom: 8px; display: flex; align-items: center; gap: 8px;';
+                header.innerHTML = `<span style="font-size: 24px;">📁</span> ${groupName}`;
+                grid.appendChild(header);
+
+                for (const p of groupProjects) {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    const projectId = p.id;
+                    const projectName = p.displayName;
+                    const lastModified = new Date(p.lastModified);
+                    let typeTag = 'LaTeX';
+                    let typeColor = 'var(--accent-blue)';
+                    if (p.type === 'code') { typeTag = 'Code'; typeColor = '#f59e0b'; }
+                    else if (p.type === 'workspace') { typeTag = 'Workspace'; typeColor = '#10b981'; }
+
+                    card.id = `card-${projectId}`;
+                    card.onclick = () => {
+                        if (p.type === 'latex') {
+                            openProjectDetails(p);
+                        } else {
+                            window.location.href = `compile.html?id=${projectId}`;
+                        }
+                    };
+
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <div>
+                                <div class="project-name">${projectName}</div>
+                                <div class="project-meta">Last modified: ${lastModified.toLocaleDateString()}</div>
+                            </div>
+                            <div class="tag" style="background-color: ${typeColor};">${typeTag}</div>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-item"><div class="stat-value" id="wc-${projectId}">-</div><div class="stat-label">Words</div></div>
+                            <div class="stat-item"><div class="stat-value" id="pg-${projectId}">-</div><div class="stat-label">Pages</div></div>
+                        </div>
+                        <div class="progress-section">
+                            <div class="progress-label"><span>Research Progress</span><span id="prog-txt-${projectId}">0%</span></div>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill" id="prog-bar-${projectId}" style="width: 0%"></div></div>
+                        </div>
+                        <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+                            <button onclick="event.stopPropagation(); window.location.href='compile.html?id=${projectId}'" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500;">
+                                Open IDE &rarr;
+                            </button>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+
+                    // Lazy load analysis data only for LaTeX
+                    if (p.type === 'latex') {
+                        loadAnalysisData(projectId, card);
+                    } else {
+                        const wcEl = card.querySelector(`#wc-${projectId}`);
+                        const pgEl = card.querySelector(`#pg-${projectId}`);
+                        if (wcEl) wcEl.innerText = 'N/A';
+                        if (pgEl) pgEl.innerText = 'N/A';
+                    }
+                }
+            }
+        }
+
+        async function loadAnalysisData(projectId, cardElement) {
+            try {
+                // 1. Load Todos
+                fetch(`/api/todos/${projectId}`).then(r => r.json()).then(todoData => {
+                    if (todoData) {
+                        const progress = todoData.overallProgress || 0;
+                        const txt = cardElement.querySelector(`#prog-txt-${projectId}`);
+                        const bar = cardElement.querySelector(`#prog-bar-${projectId}`);
+                        if (txt) txt.innerText = progress + '%';
+                        if (bar) bar.style.width = progress + '%';
+                    }
+                }).catch(e => console.log('No todo data'));
+
+                // 2. Analyze PDF text/stats
+                const anaRes = await fetch(`/api/analyze-pdf/${projectId}`);
+                const data = await anaRes.json();
+
+                if (data && !data.error) {
+                    const wc = data.wordCount ? (data.wordCount / 1000).toFixed(1) + 'k' : '-';
+                    const wcEl = cardElement.querySelector(`#wc-${projectId}`);
+                    const pgEl = cardElement.querySelector(`#pg-${projectId}`);
+
+                    if (wcEl) wcEl.innerText = wc;
+                    if (pgEl) pgEl.innerText = data.pages || '-';
+
+                    // Store detailed data on element for modal
+                    cardElement.dataset.details = JSON.stringify(data);
+                }
+            } catch (e) {
+                console.error('Analysis failed', e);
+            }
+        }
+
+        function openProjectDetails(project) {
+            const projectId = project.id;
+            const modal = document.getElementById('detailModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+
+            title.innerText = project.name;
+
+            // Try to get stored details
+            const card = document.getElementById(`card-${projectId
+                }
+
+                `);
+            let details = null;
+
+            if (card && card.dataset.details) {
+                details = JSON.parse(card.dataset.details);
+            }
+
+            let html = ` <h3>Paper Statistics</h3><div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);"><div class="stat-item"><div class="stat-value">${details ? details.wordCount : '-'
+                }
+
+            </div><div class="stat-label">Words</div></div><div class="stat-item"><div class="stat-value">${details ? details.pages : '-'
+                }
+
+            </div><div class="stat-label">Pages</div></div><div class="stat-item"><div class="stat-value">${details && details.sections ? details.sections.length : '-'
+                }
+
+            </div><div class="stat-label">Sections</div></div><div class="stat-item"><div class="stat-value">PDF</div><div class="stat-label">Format</div></div></div>`;
+
+            if (details && details.sections && details.sections.length > 0) {
+                html += `<h3>Section Breakdown</h3><ul class="section-list">`;
+
+                details.sections.forEach(sec => {
+                    html += ` <li class="section-item" > <div class="section-title" >${sec.title
+                        }
+
+                        </div> <div class="section-preview" >Page ${sec.page || 1
+                        }
+
+                        </div> </li> `;
+                });
+                html += `</ul>`;
+            }
+
+            else {
+                html += `<p style="color: var(--text-muted); text-align: center; margin-top: 24px;">No section details available. Try compiling the PDF first.</p>`;
+            }
+
+            // Add Todo List
+            html += `<h3>Research Tasks</h3><div id="modalTodoList">Loading tasks...</div>`;
+
+            body.innerHTML = html;
+            modal.classList.add('active');
+
+            // Fetch Todos for modal
+            fetch(`/api/todos/${projectId
+                }
+
+                `).then(r => r.json()).then(todos => {
+                    const listDiv = document.getElementById('modalTodoList');
+
+                    if (todos && todos.todos && todos.todos.length > 0) {
+                        let todoHtml = '<ul class="section-list">';
+
+                        todos.todos.forEach(t => {
+                            todoHtml += ` <li class="section-item" style="justify-content: flex-start; gap: 12px; opacity: ${t.status === 'completed' ? 0.5 : 1}" > <span>${t.status === 'completed' ? '✅' : '⬜'
+                                }
+
+                                </span> <span>${t.text
+                                }
+
+                                </span> </li> `;
+                        });
+                        todoHtml += '</ul>';
+                        listDiv.innerHTML = todoHtml;
+                    }
+
+                    else {
+                        listDiv.innerHTML = '<p style="color: var(--text-muted);">No tasks tracked.</p>';
+                    }
+                });
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        // AI Settings Modal logic
+        function openAiSettingsModal() {
+            document.getElementById('aiSettingsModal').classList.add('active');
+            // Fetch global config to populate the key if it exists
+            fetch('/api/config')
+                .then(r => r.json())
+                .then(config => {
+                    if (config.openai_api_key) {
+                        document.getElementById('openaiApiKey').value = config.openai_api_key;
+                    }
+                })
+                .catch(err => console.error('Error loading AI config:', err));
+        }
+
+        function closeAiSettingsModal() {
+            document.getElementById('aiSettingsModal').classList.remove('active');
+            document.getElementById('aiConfigResult').innerText = '';
+        }
+
+        async function saveAiConfig() {
+            const key = document.getElementById('openaiApiKey').value.trim();
+            const resDiv = document.getElementById('aiConfigResult');
+            resDiv.innerText = 'Saving...';
+            resDiv.style.color = 'var(--text-secondary)';
+
+            try {
+                const res = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ openai_api_key: key })
+                });
+
+                if (res.ok) {
+                    resDiv.innerText = '✅ API Key saved successfully!';
+                    resDiv.style.color = 'var(--accent-green)';
+                    setTimeout(closeAiSettingsModal, 1500);
+                } else {
+                    resDiv.innerText = 'Failed to save API key.';
+                    resDiv.style.color = 'var(--accent-red)';
+                }
+            } catch (err) {
+                console.error(err);
+                resDiv.innerText = 'Network error saving config.';
+                resDiv.style.color = 'var(--accent-red)';
+            }
+        }
+
+        // GitHub Integration
+        function openGitHubModal() {
+            const modal = document.getElementById('githubModal');
+            modal.classList.add('active');
+
+            // Auto-fill token if exists
+            const token = localStorage.getItem('github_pat');
+
+            if (token) {
+                document.getElementById('githubToken').value = token;
+            }
+        }
+
+        function closeGitHubModal() {
+            document.getElementById('githubModal').classList.remove('active');
+        }
+
+        async function fetchGitHubRepos() {
+            const token = document.getElementById('githubToken').value.trim();
+            if (!token) return alert('Please enter a GitHub Token');
+
+            // Save token locally
+            localStorage.setItem('github_pat', token);
+
+            const listDiv = document.getElementById('repoList');
+            listDiv.innerHTML = '<div class="loading">Fetching repositories...</div>';
+
+            try {
+                const res = await fetch('/api/github/repos', {
+                    headers: {
+                        'Authorization': `Bearer ${token
+                            }
+
+                        `
+                    }
+                });
+
+                if (!res.ok) throw new Error('Failed to fetch repos');
+
+                const repos = await res.json();
+
+                if (repos.length === 0) {
+                    listDiv.innerHTML = '<div class="loading">No repositories found.</div>';
+                    return;
+                }
+
+                let html = '<ul class="section-list">';
+
+                repos.forEach(repo => {
+                    html += ` <li class="section-item" style="align-items: center;" > <div style="flex: 1;" > <div class="section-title" style="display: flex; gap: 8px; align-items: center;" > ${repo.private ? '🔒' : 'PUBLIC'
+                        }
+
+                    ${repo.name
+                        }
+
+                    </div> <div class="section-preview" >${repo.description || 'No description'
+                        }
+
+                    </div> </div> <button onclick="cloneRepo('${repo.clone_url}', '${repo.name}')" style="background: var(--bg-hover); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;" > Import </button> </li> `;
+                });
+                html += '</ul>';
+                listDiv.innerHTML = html;
+
+            }
+
+            catch (err) {
+                console.error(err);
+
+                listDiv.innerHTML = `<div class="loading" style="color: var(--accent-red);">Error: ${err.message
+                    }
+
+            . Check your token.</div>`;
+            }
+        }
+
+        async function cloneRepo(url, name) {
+            if (!confirm(`Import ${name
+                }
+
+                    to local projects?`)) return;
+
+            const token = localStorage.getItem('github_pat');
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = 'Importing...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/github/clone', {
+
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+
+                    ,
+                    body: JSON.stringify({
+                        token: token, // Used for git auth
+                        repoUrl: url,
+                        repoName: name
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    btn.innerText = 'Done!';
+                    btn.style.background = 'var(--accent-green)';
+
+                    setTimeout(() => {
+                        closeGitHubModal();
+                        fetchProjects(); // Refresh dashboard
+                    }
+
+                        , 1000);
+                }
+
+                else {
+                    throw new Error(data.error || 'Clone failed');
+                }
+            }
+
+            catch (err) {
+                alert('Import failed: ' + err.message);
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        window.onclick = function (event) {
+            const modal = document.getElementById('detailModal');
+            const ghModal = document.getElementById('githubModal');
+            if (event.target == modal) closeModal();
+            if (event.target == ghModal) closeGitHubModal();
+        }
+
+        // ---- Overleaf Import ----
+        function openOverleafModal() {
+            const token = localStorage.getItem('overleaf_token') || '';
+            document.getElementById('overleafCloneToken').value = token;
+            document.getElementById('overleafModal').style.display = 'flex';
+        }
+
+        async function cloneFromOverleaf() {
+            const url = document.getElementById('overleafCloneUrl').value.trim();
+            const token = document.getElementById('overleafCloneToken').value.trim();
+            const name = document.getElementById('overleafProjectName').value.trim();
+            const resultDiv = document.getElementById('overleafCloneResult');
+            const btn = document.getElementById('overleafCloneBtn');
+
+            if (!url || !token) {
+                resultDiv.innerHTML = '<div style="color:#ef4444;">请填写 URL 和 Token</div>';
+                return;
+            }
+
+            localStorage.setItem('overleaf_token', token);
+            btn.disabled = true;
+            btn.textContent = 'Cloning...';
+            resultDiv.innerHTML = '<div style="color:#f59e0b;">正在从 Overleaf 克隆，请稍候...</div>';
+
+            try {
+                const res = await fetch('/api/overleaf/clone', {
+
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+
+                    ,
+                    body: JSON.stringify({
+                        overleafUrl: url, token, projectName: name
+                    })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `<div style="color:#22c55e;">✓ 导入成功！项目名: ${data.name
+                        }
+
+            </div>`;
+
+                    setTimeout(() => {
+                        document.getElementById('overleafModal').style.display = 'none';
+                        fetchProjects();
+                    }
+
+                        , 1500);
+                }
+
+                else {
+                    resultDiv.innerHTML = `<div style="color:#ef4444;">✗ ${data.error
+                        }
+
+            </div>`;
+                }
+            }
+
+            catch (e) {
+                resultDiv.innerHTML = `<div style="color:#ef4444;">Error: ${e.message
+                    }
+
+            </div>`;
+            }
+
+            finally {
+                btn.disabled = false;
+                btn.textContent = 'Clone Project';
+            }
+        }
+
+        // ---- Create New Project ----
+        function openCreateProjectModal() {
+            document.getElementById('newProjectName').value = '';
+            document.getElementById('createProjectResult').innerHTML = '';
+            document.getElementById('createProjectModal').style.display = 'flex';
+            document.getElementById('newProjectName').focus();
+        }
+
+        async function createProject() {
+            const name = document.getElementById('newProjectName').value.trim();
+            const template = document.getElementById('newProjectTemplate').value;
+            const resultDiv = document.getElementById('createProjectResult');
+            const btn = document.getElementById('createProjectBtn');
+
+            if (!name) {
+                resultDiv.innerHTML = '<div style="color:#ef4444;">Please enter a project name</div>';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Creating...';
+
+            try {
+                const res = await fetch('/api/project/create', {
+
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+
+                    ,
+                    body: JSON.stringify({
+                        name, template
+                    })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `<div style="color:#22c55e;">✓ Created ! Opening...</div>`;
+
+                    setTimeout(() => {
+                        window.location.href = `compile.html?project=${data.name
+                            }
+
+                    `;
+                    }
+
+                        , 1000);
+                }
+
+                else {
+                    resultDiv.innerHTML = `<div style="color:#ef4444;">✗ ${data.error
+                        }
+
+            </div>`;
+                    btn.disabled = false;
+                    btn.textContent = 'Create Project';
+                }
+            }
+
+            catch (e) {
+                resultDiv.innerHTML = `<div style="color:#ef4444;">Error: ${e.message
+                    }
+
+            </div>`;
+                btn.disabled = false;
+                btn.textContent = 'Create Project';
+            }
+        }
+
+        fetchProjects();
+
+
+        // ---- Canvas Integration ----
+        function toggleCanvasConfig() {
+            const el = document.getElementById('canvas-config');
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function saveCanvasConfig() {
+            const url = document.getElementById('canvas-ics-url').value.trim();
+            if (!url) return alert('Please enter a URL');
+
+            try {
+                const res = await fetch('/api/canvas/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ icsUrl: url })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    toggleCanvasConfig();
+                    loadCanvasDeadlines();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (e) { alert('Error: ' + e.message); }
+        }
+
+        async function startScraper() {
+            if (!confirm('This will open a browser window to scrape full assignment details. Please login to Canvas manually if prompted. Continue?')) return;
+
+            try {
+                const res = await fetch('/api/canvas/scrape', { method: 'POST' });
+                const data = await res.json();
+                alert(data.message);
+            } catch (e) {
+                alert('Error starting scraper: ' + e.message);
+            }
+        }
+
+        let fullAssignments = [];
+
+        async function loadCanvasDeadlines() {
+            const statusEl = document.getElementById('canvas-status');
+            if (statusEl) statusEl.innerText = 'Checking...';
+
+            try {
+                // Fetch ICS deadlines
+                const resICS = await fetch('/api/canvas/deadlines');
+                if (!resICS.ok) throw new Error(`Server returned ${resICS.status}`);
+                const dataICS = await resICS.json();
+
+                if (statusEl) {
+                    if (!dataICS.configured) {
+                        statusEl.innerText = 'Not configured';
+                    } else {
+                        const count = dataICS.deadlines.length;
+                        statusEl.innerText = `Synced: ${count} upcoming deadline${count !== 1 ? 's' : ''}`;
+                        statusEl.style.color = 'var(--accent-green)';
+                    }
+                }
+            } catch (e) {
+                if (statusEl) {
+                    statusEl.innerText = 'Sync failed';
+                    statusEl.style.color = 'var(--accent-red)';
+                }
+            }
+        }
+
+        function openAssignmentModal(id) {
+            const assignment = fullAssignments.find(a => a.id == id);
+            if (!assignment) return;
+
+            document.getElementById('modalTitle').textContent = assignment.name;
+            document.getElementById('modalMeta').textContent = `${assignment.course_name || 'Canvas'} | Due: ${assignment.due_at || 'No date'}`;
+            document.getElementById('modalBody').innerHTML = assignment.description || '<p>No description available.</p>';
+            document.getElementById('assignmentModal').style.display = 'flex';
+        }
+
+        function closeAssignmentModal() {
+            document.getElementById('assignmentModal').style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            const modal = document.getElementById('assignmentModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        loadCanvasDeadlines();
+
+    </script>
+</body>
+
+</html>
