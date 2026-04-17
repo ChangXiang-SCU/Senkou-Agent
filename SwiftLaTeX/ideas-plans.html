@@ -1,0 +1,2087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title data-i18n="page.title">Senkou Agent - Ideas & Plans</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111113;
+            --bg-tertiary: #1a1a1e;
+            --bg-hover: #1f1f23;
+            --bg-active: #27272a;
+            --border-color: #27272a;
+            --border-light: #3f3f46;
+            --text-primary: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-purple: #a855f7;
+            --accent-red: #ef4444;
+            --accent-yellow: #eab308;
+            --accent-orange: #f97316;
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Top Bar ── */
+        .top-bar {
+            height: 48px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        .top-bar .logo {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            gap: 4px;
+            margin-left: 12px;
+        }
+        .nav-link {
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+        .nav-link:hover { color: var(--text-primary); background: var(--bg-hover); }
+        .nav-link.active { color: var(--text-primary); background: var(--bg-active); }
+        .spacer { flex: 1; }
+
+        /* ── Buttons ── */
+        .btn {
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .btn:hover { background: var(--bg-hover); border-color: var(--border-light); }
+        .btn-primary { background: var(--accent-blue); border-color: var(--accent-blue); color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-danger { color: var(--accent-red); }
+        .btn-danger:hover { background: rgba(239,68,68,0.1); }
+        .btn-sm { padding: 4px 8px; font-size: 12px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ── Main Layout ── */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ── Tab Bar ── */
+        .tab-bar {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            padding: 0 16px;
+            flex-shrink: 0;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border: none;
+            background: none;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+        .tab-btn:hover { color: var(--text-primary); }
+        .tab-btn.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+        }
+        .tab-count {
+            background: var(--bg-tertiary);
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .tab-btn.active .tab-count {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
+        }
+
+        /* ── Content Area (list + detail split) ── */
+        .content-area {
+            flex: 1;
+            display: none;
+            overflow: hidden;
+        }
+        .content-area.active { display: flex; }
+
+        .list-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 320px;
+        }
+
+        /* ── Toolbar ── */
+        .toolbar {
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .toolbar h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* ── Item List ── */
+        .item-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        .item-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .item-card:hover { border-color: var(--border-light); background: var(--bg-tertiary); }
+        .item-card.active { border-color: var(--accent-blue); background: rgba(59, 130, 246, 0.05); }
+        .item-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+        .item-card-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .item-card-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+
+        /* ── Status Badges ── */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .status-badge.draft { background: rgba(113,113,122,0.15); color: var(--text-muted); }
+        .status-badge.exploring { background: rgba(59,130,246,0.15); color: var(--accent-blue); }
+        .status-badge.selected { background: rgba(168,85,247,0.15); color: var(--accent-purple); }
+        .status-badge.archived { background: rgba(113,113,122,0.25); color: var(--text-muted); }
+        .status-badge.active { background: rgba(59,130,246,0.15); color: var(--accent-blue); }
+        .status-badge.completed { background: rgba(34,197,94,0.15); color: var(--accent-green); }
+
+        /* ── Tags ── */
+        .tag-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+        .tag-chip {
+            font-size: 10px;
+            padding: 2px 6px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        /* ── Score Badges ── */
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .score-badge.high { background: rgba(34,197,94,0.15); color: var(--accent-green); }
+        .score-badge.medium { background: rgba(234,179,8,0.15); color: var(--accent-yellow); }
+        .score-badge.low { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+
+        /* ── Detail Panel ── */
+        .detail-panel {
+            display: none;
+            flex-direction: column;
+            width: 55%;
+            min-width: 420px;
+            border-left: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            overflow: hidden;
+        }
+        .detail-panel.visible { display: flex; }
+        .detail-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .detail-header h3 {
+            font-size: 15px;
+            font-weight: 600;
+            flex: 1;
+        }
+        .detail-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        /* ── Form Fields ── */
+        .field-group {
+            margin-bottom: 16px;
+        }
+        .field-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .field-group input,
+        .field-group textarea,
+        .field-group select {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 8px 10px;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+        }
+        .field-group input:focus,
+        .field-group textarea:focus {
+            border-color: var(--accent-blue);
+        }
+        .field-group textarea { resize: vertical; min-height: 60px; }
+        .field-row {
+            display: flex;
+            gap: 8px;
+        }
+        .field-row .field-group { flex: 1; }
+
+        /* ── Progress Bar ── */
+        .progress-bar-bg {
+            background: var(--bg-hover);
+            border-radius: 4px;
+            height: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--accent-green);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        /* ── Todo List ── */
+        .todo-list { list-style: none; padding: 0; }
+        .todo-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .todo-item:last-child { border-bottom: none; }
+        .todo-item input[type="checkbox"] {
+            margin-top: 2px;
+            accent-color: var(--accent-blue);
+            cursor: pointer;
+        }
+        .todo-item .todo-text { flex: 1; font-size: 13px; line-height: 1.4; }
+        .todo-item .todo-text.done { text-decoration: line-through; color: var(--text-muted); }
+        .todo-phase { font-size: 12px; color: var(--accent-purple); font-weight: 500; margin-bottom: 4px; }
+        .todo-desc { font-size: 13px; color: var(--text-secondary); }
+        .todo-add-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .todo-add-row input {
+            flex: 1;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 6px 10px;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+        }
+        .todo-add-row input:focus { border-color: var(--accent-blue); }
+
+        /* ── AI Generate Section ── */
+        .ai-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-top: 16px;
+        }
+        .ai-section h4 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .ai-section p.hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        .ai-content {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            margin-top: 8px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+        .ai-content h1 { font-size: 18px; margin: 16px 0 8px; color: var(--text-primary); }
+        .ai-content h2 { font-size: 16px; margin: 16px 0 8px; color: var(--text-primary); }
+        .ai-content h3 { font-size: 14px; margin: 12px 0 6px; color: var(--text-primary); }
+        .ai-content ul, .ai-content ol { padding-left: 20px; margin: 8px 0; }
+        .ai-content li { margin: 4px 0; }
+        .ai-content p { margin: 8px 0; }
+        .ai-content blockquote { border-left: 3px solid var(--accent-blue); padding-left: 12px; color: var(--text-muted); }
+        .ai-content strong { color: var(--text-primary); }
+        .ai-content code { background: var(--bg-tertiary); padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+        .ai-content table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 12px; }
+        .ai-content th, .ai-content td { border: 1px solid var(--border-color); padding: 6px 10px; text-align: left; }
+        .ai-content th { background: var(--bg-tertiary); font-weight: 600; color: var(--text-primary); }
+
+        /* ── Loading ── */
+        .ai-loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 0;
+            color: var(--accent-blue);
+            font-size: 13px;
+        }
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Empty State ── */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            font-size: 14px;
+            text-align: center;
+            gap: 12px;
+            padding: 40px;
+        }
+        .empty-state svg { opacity: 0.4; }
+        .empty-state p { max-width: 300px; line-height: 1.5; }
+
+        /* ── Toast Notifications ── */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .toast {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 10px 16px;
+            font-size: 13px;
+            color: var(--text-primary);
+            box-shadow: var(--shadow-md);
+            animation: slideIn 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toast.success { border-left: 3px solid var(--accent-green); }
+        .toast.error { border-left: 3px solid var(--accent-red); }
+        .toast.info { border-left: 3px solid var(--accent-blue); }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* ── Refinement History ── */
+        .refinement-item {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            margin-top: 8px;
+            background: var(--bg-secondary);
+        }
+        .refinement-date {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+    </style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+    <a class="logo" href="dashboard.html" data-i18n="nav.brand">Senkou</a>
+    <div class="nav-links">
+        <a class="nav-link" href="dashboard.html" data-i18n="nav.dashboard">Dashboard</a>
+        <a class="nav-link" id="nav-library-link" data-i18n="nav.library">Library</a>
+        <a class="nav-link active" href="#" data-i18n="nav.ideasPlans">Ideas & Plans</a>
+    </div>
+    <div class="spacer"></div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+    <button class="tab-btn active" id="tab-ideas" onclick="switchTab('ideas')" data-i18n="tabs.ideas">
+        <span>Ideas</span>
+        <span class="tab-count" id="ideas-count">0</span>
+    </button>
+    <button class="tab-btn" id="tab-plans" onclick="switchTab('plans')" data-i18n="tabs.plans">
+        <span>Plans</span>
+        <span class="tab-count" id="plans-count">0</span>
+    </button>
+    <button class="tab-btn" id="tab-experiments" onclick="switchTab('experiments')">
+        <span>🧪 Experiments</span>
+        <span class="tab-count" id="experiments-count">0</span>
+    </button>
+</div>
+
+<!-- Main Container -->
+<div class="main-container">
+
+    <!-- Ideas Content -->
+    <div class="content-area active" id="ideas-content">
+        <div class="list-panel">
+            <div class="toolbar">
+                <h3 data-i18n="ideas.title">Research Ideas</h3>
+                <div style="flex:1"></div>
+                <button class="btn btn-primary btn-sm" onclick="createIdea()" data-i18n="ideas.newBtn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                    New Idea
+                </button>
+            </div>
+            <div class="item-list" id="ideas-list"></div>
+        </div>
+        <div class="detail-panel" id="idea-detail"></div>
+    </div>
+
+    <!-- Plans Content -->
+    <div class="content-area" id="plans-content">
+        <div class="list-panel">
+            <div class="toolbar">
+                <h3 data-i18n="plans.title">Research Plans</h3>
+                <div style="flex:1"></div>
+                <button class="btn btn-primary btn-sm" onclick="createPlan()" data-i18n="plans.newBtn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                    New Plan
+                </button>
+            </div>
+            <div class="item-list" id="plans-list"></div>
+        </div>
+        <div class="detail-panel" id="plan-detail"></div>
+    </div>
+
+    <!-- Experiments Content -->
+    <div class="content-area" id="experiments-content">
+        <div class="list-panel">
+            <div class="toolbar">
+                <h3>🧪 Experiments</h3>
+                <div style="flex:1"></div>
+                <button class="btn btn-primary btn-sm" onclick="createExperiment()">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                    New Experiment
+                </button>
+                <button class="btn btn-sm" onclick="compareExperiments()" style="margin-left:4px;" title="Compare selected experiments">
+                    📊 Compare
+                </button>
+            </div>
+            <div class="item-list" id="experiments-list"></div>
+        </div>
+        <div class="detail-panel" id="experiment-detail"></div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="i18n.js"></script>
+<script>
+// ============================================================
+// State
+// ============================================================
+const params = new URLSearchParams(window.location.search);
+const projectId = params.get('projectId') || '';
+const apiBase = projectId ? `/api/projects/${projectId}/library` : '/api/library';
+
+let ideasList = [];
+let plansList = [];
+let experimentsList = [];
+let selectedIdeaId = null;
+let selectedPlanId = null;
+let selectedExperimentId = null;
+let abortController = null;
+let currentTab = 'ideas';
+
+// Set library nav link
+document.getElementById('nav-library-link').href = projectId ? `library.html?projectId=${projectId}` : 'library.html';
+// Update dashboard link with projectId if present
+if (projectId) {
+    document.querySelector('.logo').href = `dashboard.html`;
+}
+
+// ============================================================
+// Initialization
+// ============================================================
+document.addEventListener('DOMContentLoaded', async () => {
+    await Promise.all([loadIdeas(), loadPlans(), loadExperiments()]);
+});
+
+// ============================================================
+// Tab Switching
+// ============================================================
+function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('tab-ideas').classList.toggle('active', tab === 'ideas');
+    document.getElementById('tab-plans').classList.toggle('active', tab === 'plans');
+    document.getElementById('tab-experiments').classList.toggle('active', tab === 'experiments');
+    document.getElementById('ideas-content').classList.toggle('active', tab === 'ideas');
+    document.getElementById('plans-content').classList.toggle('active', tab === 'plans');
+    document.getElementById('experiments-content').classList.toggle('active', tab === 'experiments');
+}
+
+// ============================================================
+// Utilities
+// ============================================================
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function truncate(str, len) {
+    if (!str) return '';
+    return str.length > len ? str.substring(0, len) + '...' : str;
+}
+
+function renderMarkdown(text) {
+    if (!text) return '';
+    let html = escapeHtml(text);
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+    html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+    html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+    html = html.replace(/^---$/gm, '<hr>');
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--accent-blue)">$1</a>');
+    html = html.replace(/\|(.+)\|\n\|[-| :]+\|\n((?:\|.+\|\n?)+)/g, (match, headerRow, bodyRows) => {
+        const headers = headerRow.split('|').filter(c => c.trim()).map(c => '<th>' + c.trim() + '</th>').join('');
+        const rows = bodyRows.trim().split('\n').map(row => {
+            const cells = row.split('|').filter(c => c.trim()).map(c => '<td>' + c.trim() + '</td>').join('');
+            return '<tr>' + cells + '</tr>';
+        }).join('');
+        return '<table><thead><tr>' + headers + '</tr></thead><tbody>' + rows + '</tbody></table>';
+    });
+    html = html.replace(/\n\n/g, '</p><p>');
+    html = '<p>' + html + '</p>';
+    html = html.replace(/<p>\s*<(h[1-3]|ul|ol|pre|blockquote|hr|table)/g, '<$1');
+    html = html.replace(/<\/(h[1-3]|ul|ol|pre|blockquote|table)>\s*<\/p>/g, '</$1>');
+    return html;
+}
+
+function showToast(msg, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+    toast.textContent = msg;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+function parseTags(str) {
+    if (!str) return [];
+    return str.split(',').map(t => t.trim()).filter(Boolean);
+}
+
+// ============================================================
+// SSE Stream Reader
+// ============================================================
+async function readSSEStream(response, contentEl, onDone) {
+    let fullText = '';
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const dataStr = line.slice(6);
+            if (dataStr === '[DONE]') continue;
+            try {
+                const data = JSON.parse(dataStr);
+                if (data.type === 'text') {
+                    fullText += data.content;
+                    contentEl.innerHTML = renderMarkdown(fullText);
+                } else if (data.type === 'saved') {
+                    showToast('Auto-saved', 'success');
+                } else if (data.type === 'done') {
+                    if (onDone) await onDone(fullText);
+                }
+            } catch (e) { /* skip malformed */ }
+        }
+    }
+    return fullText;
+}
+
+function stopGeneration() {
+    if (abortController) {
+        abortController.abort();
+        abortController = null;
+    }
+    showToast('Generation stopped', 'info');
+}
+
+// ============================================================
+// IDEAS: CRUD
+// ============================================================
+async function loadIdeas() {
+    try {
+        const res = await fetch(apiBase + '/ideas');
+        ideasList = await res.json();
+    } catch (e) { ideasList = []; }
+    document.getElementById('ideas-count').textContent = ideasList.length;
+    renderIdeasList();
+}
+
+function renderIdeasList() {
+    const container = document.getElementById('ideas-list');
+    document.getElementById('ideas-count').textContent = ideasList.length;
+    if (ideasList.length === 0) {
+        container.innerHTML = '<div class="empty-state">' +
+            '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>' +
+            '<h3 data-i18n="ideas.emptyTitle">No Research Ideas</h3>' +
+            '<p data-i18n="ideas.emptyDesc">Create a new idea or generate ideas using AI.</p>' +
+            '</div>';
+        return;
+    }
+    container.innerHTML = ideasList.map(idea => {
+        const tags = (idea.tags || []);
+        const tagsHtml = tags.length > 0 ?
+            '<div class="tag-chips">' + tags.map(t => '<span class="tag-chip">' + escapeHtml(t) + '</span>').join('') + '</div>' : '';
+
+        return '<div class="item-card ' + (selectedIdeaId === idea.id ? 'active' : '') + '" onclick="selectIdea(\'' + idea.id + '\')">' +
+            '<div class="item-card-title">' + escapeHtml(idea.title) + '</div>' +
+            '<div class="item-card-meta">' +
+                '<span class="status-badge ' + (idea.status || 'draft') + '">' + (idea.status || 'draft') + '</span>' +
+                '<span>' + new Date(idea.dateModified || idea.dateCreated || Date.now()).toLocaleDateString() + '</span>' +
+            '</div>' +
+            (idea.description ? '<div class="item-card-desc">' + escapeHtml(truncate(idea.description, 150)) + '</div>' : '') +
+            tagsHtml +
+            '</div>';
+    }).join('');
+}
+
+async function createIdea() {
+    try {
+        const res = await fetch(apiBase + '/ideas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: 'New Research Idea',
+                description: '',
+                methodology: '',
+                impact: '',
+                feasibility: '',
+                status: 'draft',
+                tags: []
+            })
+        });
+        const idea = await res.json();
+        ideasList.unshift(idea);
+        selectedIdeaId = idea.id;
+        renderIdeasList();
+        renderIdeaDetail(idea);
+        showToast('Idea created', 'success');
+    } catch (e) { showToast('Failed to create idea', 'error'); }
+}
+
+function selectIdea(id) {
+    selectedIdeaId = id;
+    renderIdeasList();
+    const idea = ideasList.find(i => i.id === id);
+    if (idea) renderIdeaDetail(idea);
+}
+
+function renderIdeaDetail(idea) {
+    const panel = document.getElementById('idea-detail');
+    panel.classList.add('visible');
+
+    const refinementsHtml = (idea.refinements || []).map(ref =>
+        '<div class="refinement-item">' +
+            '<div class="refinement-date">' + new Date(ref.date).toLocaleString() + ' — Feedback: "' + escapeHtml(truncate(ref.feedback, 80)) + '"</div>' +
+            '<div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">' + renderMarkdown(truncate(ref.result || '', 500)) + '</div>' +
+        '</div>'
+    ).join('');
+
+    panel.innerHTML =
+        '<div class="detail-header">' +
+            '<h3 data-i18n="ideas.editTitle">Edit Idea</h3>' +
+            '<button class="btn btn-sm btn-danger" onclick="deleteIdea(\'' + idea.id + '\')" title="Delete" data-i18n-title="actions.delete">&#128465;</button>' +
+            '<button class="btn btn-sm" onclick="closeIdeaDetail()" title="Close" data-i18n-title="actions.close">&times;</button>' +
+        '</div>' +
+        '<div class="detail-body">' +
+            '<div class="field-group">' +
+                '<label data-i18n="fields.title">Title</label>' +
+                '<input type="text" id="idea-title" value="' + escapeHtml(idea.title) + '" onchange="updateIdeaField(\'' + idea.id + '\', \'title\', this.value)">' +
+            '</div>' +
+            '<div class="field-group">' +
+                '<label data-i18n="fields.description">Description</label>' +
+                '<textarea id="idea-desc" rows="3" onchange="updateIdeaField(\'' + idea.id + '\', \'description\', this.value)">' + escapeHtml(idea.description || '') + '</textarea>' +
+            '</div>' +
+            '<div class="field-group">' +
+                '<label data-i18n="fields.methodology">Methodology</label>' +
+                '<textarea id="idea-methodology" rows="3" onchange="updateIdeaField(\'' + idea.id + '\', \'methodology\', this.value)">' + escapeHtml(idea.methodology || '') + '</textarea>' +
+            '</div>' +
+            '<div class="field-row">' +
+                '<div class="field-group">' +
+                    '<label data-i18n="fields.impact">Impact</label>' +
+                    '<input type="text" value="' + escapeHtml(idea.impact || '') + '" onchange="updateIdeaField(\'' + idea.id + '\', \'impact\', this.value)">' +
+                '</div>' +
+                '<div class="field-group">' +
+                    '<label data-i18n="fields.feasibility">Feasibility</label>' +
+                    '<input type="text" value="' + escapeHtml(idea.feasibility || '') + '" onchange="updateIdeaField(\'' + idea.id + '\', \'feasibility\', this.value)">' +
+                '</div>' +
+            '</div>' +
+            '<div class="field-group">' +
+                '<label data-i18n="fields.status">Status</label>' +
+                '<select onchange="updateIdeaField(\'' + idea.id + '\', \'status\', this.value)">' +
+                    '<option value="draft"' + (idea.status === 'draft' ? ' selected' : '') + ' data-i18n="status.draft">Draft</option>' +
+                    '<option value="exploring"' + (idea.status === 'exploring' ? ' selected' : '') + ' data-i18n="status.exploring">Exploring</option>' +
+                    '<option value="selected"' + (idea.status === 'selected' ? ' selected' : '') + ' data-i18n="status.selected">Selected</option>' +
+                    '<option value="archived"' + (idea.status === 'archived' ? ' selected' : '') + ' data-i18n="status.archived">Archived</option>' +
+                '</select>' +
+            '</div>' +
+            '<div class="field-group">' +
+                '<label data-i18n="fields.tags">Tags (comma-separated)</label>' +
+                '<input type="text" id="idea-tags" value="' + escapeHtml((idea.tags || []).join(', ')) + '" onchange="updateIdeaField(\'' + idea.id + '\', \'tags\', parseTags(this.value))">' +
+            '</div>' +
+
+            /* AI Section */
+            '<div class="ai-section">' +
+                '<h4 data-i18n="ai.ideaTitle">AI Idea Generation & Refinement</h4>' +
+                '<p class="hint" data-i18n="ai.ideaHint">Generate research ideas or refine this idea with AI feedback.</p>' +
+                '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+                    '<button class="btn btn-primary btn-sm" onclick="generateIdeas(\'' + idea.id + '\')" id="idea-gen-btn" data-i18n="ai.generateIdeas">Generate Ideas</button>' +
+                    '<button class="btn btn-danger btn-sm" onclick="stopGeneration()" id="idea-stop-btn" style="display:none;" data-i18n="ai.stop">Stop</button>' +
+                '</div>' +
+                '<div class="field-group" style="margin-top:10px;">' +
+                    '<label data-i18n="ai.refineFeedback">Refinement Feedback</label>' +
+                    '<textarea id="idea-refine-input" rows="2" placeholder="Provide feedback to refine this idea..." data-i18n-placeholder="ai.refinePlaceholder"></textarea>' +
+                '</div>' +
+                '<div style="display:flex;gap:8px;">' +
+                    '<button class="btn btn-sm" onclick="refineIdea(\'' + idea.id + '\')" id="idea-refine-btn" data-i18n="ai.refine">Refine with Feedback</button>' +
+                '</div>' +
+                '<div class="ai-content" id="idea-gen-content" style="' + (idea.content ? '' : 'display:none') + '">' +
+                    (idea.content ? renderMarkdown(idea.content) : '') +
+                '</div>' +
+                (refinementsHtml ? '<div style="margin-top:12px;"><label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);" data-i18n="ai.refinementHistory">Refinement History</label>' + refinementsHtml + '</div>' : '') +
+            '</div>' +
+
+            /* Novelty Detection Section */
+            '<div class="ai-section" style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;">' +
+                '<h4>🔍 Novelty Detection</h4>' +
+                '<p class="hint">Check how novel this idea is by searching existing literature for similar work.</p>' +
+                '<div style="display:flex;gap:8px;align-items:center;">' +
+                    '<button class="btn btn-sm" style="background:#a855f7;color:#fff;border:none;" onclick="checkNovelty(\'' + idea.id + '\')" id="novelty-btn">🔬 Check Novelty</button>' +
+                    (idea.noveltyCheck?.score != null ? '<span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:12px;background:' + (idea.noveltyCheck.score >= 7 ? '#22c55e' : idea.noveltyCheck.score >= 4 ? '#eab308' : '#ef4444') + ';color:#fff;">Score: ' + idea.noveltyCheck.score + '/10</span>' : '') +
+                '</div>' +
+                '<div id="novelty-content" style="margin-top:8px;' + (idea.noveltyCheck?.assessment ? '' : 'display:none;') + '">' +
+                    (idea.noveltyCheck?.assessment ? renderMarkdown(idea.noveltyCheck.assessment) : '') +
+                '</div>' +
+                (idea.noveltyCheck?.relatedPapers?.length ? '<details style="margin-top:8px;font-size:12px;"><summary style="cursor:pointer;color:var(--accent);">📚 ' + idea.noveltyCheck.relatedPapers.length + ' related papers found</summary><ul style="margin-top:4px;padding-left:16px;">' + idea.noveltyCheck.relatedPapers.map(function(p) { return '<li><strong>' + escapeHtml(p.title) + '</strong> (' + (p.year || '?') + ')' + (p.venue ? ' — ' + escapeHtml(p.venue) : '') + '</li>'; }).join('') + '</ul></details>' : '') +
+            '</div>' +
+
+            /* AI Debate Section */
+            '<div class="ai-section" style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;">' +
+                '<h4>⚔️ AI Debate Optimization</h4>' +
+                '<p class="hint">Three-stage AI debate: Advocate builds the case, Critic challenges it, Synthesizer integrates both into an improved idea.</p>' +
+                '<div style="display:flex;gap:8px;align-items:center;">' +
+                    '<button class="btn btn-sm" style="background:#f59e0b;color:#fff;border:none;" onclick="debateIdea(\'' + idea.id + '\')" id="debate-btn">⚔️ Start Debate</button>' +
+                    '<button class="btn btn-danger btn-sm" onclick="stopGeneration()" id="debate-stop-btn" style="display:none;">Stop</button>' +
+                '</div>' +
+                '<div id="debate-stages" style="display:none;margin-top:8px;"></div>' +
+                '<div id="debate-content" style="margin-top:8px;display:none;"></div>' +
+            '</div>' +
+
+            /* Tree Search Section */
+            '<div class="ai-section" style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;">' +
+                '<h4>🌳 Idea Tree Search</h4>' +
+                '<p class="hint">Explore idea variants via branching, scoring, and deepening. Generates seed ideas, creates variants, selects the best, and develops it into a detailed proposal.</p>' +
+                '<div style="display:flex;gap:8px;align-items:center;">' +
+                    '<button class="btn btn-sm" style="background:#06b6d4;color:#fff;border:none;" onclick="treeSearchIdeas()" id="tree-search-btn">🌳 Tree Search</button>' +
+                    '<button class="btn btn-danger btn-sm" onclick="stopGeneration()" id="tree-stop-btn" style="display:none;">Stop</button>' +
+                '</div>' +
+                '<div id="tree-search-visualization" style="display:none;margin-top:8px;"></div>' +
+                '<div id="tree-search-content" style="margin-top:8px;display:none;"></div>' +
+            '</div>' +
+
+            /* Cross-domain Section */
+            '<div class="ai-section" style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;">' +
+                '<h4>🔗 Cross-Domain Discovery</h4>' +
+                '<p class="hint">Analyze your references across different domains to discover methodological bridges, conceptual connections, and novel cross-domain research opportunities.</p>' +
+                '<div style="display:flex;gap:8px;align-items:center;">' +
+                    '<button class="btn btn-sm" style="background:#8b5cf6;color:#fff;border:none;" onclick="crossDomainDiscovery()" id="cross-domain-btn">🔗 Discover Connections</button>' +
+                    '<button class="btn btn-danger btn-sm" onclick="stopGeneration()" id="cross-stop-btn" style="display:none;">Stop</button>' +
+                '</div>' +
+                '<div id="cross-domain-content" style="margin-top:8px;display:none;"></div>' +
+            '</div>' +
+
+        '</div>';
+}
+
+function closeIdeaDetail() {
+    document.getElementById('idea-detail').classList.remove('visible');
+    selectedIdeaId = null;
+    renderIdeasList();
+}
+
+async function updateIdeaField(id, field, value) {
+    try {
+        await fetch(apiBase + '/ideas/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ [field]: value })
+        });
+        const idx = ideasList.findIndex(i => i.id === id);
+        if (idx >= 0) ideasList[idx][field] = value;
+        renderIdeasList();
+    } catch (e) { showToast('Failed to update', 'error'); }
+}
+
+async function deleteIdea(id) {
+    if (!confirm('Delete this research idea?')) return;
+    try {
+        await fetch(apiBase + '/ideas/' + id, { method: 'DELETE' });
+        ideasList = ideasList.filter(i => i.id !== id);
+        closeIdeaDetail();
+        showToast('Idea deleted', 'success');
+    } catch (e) { showToast('Failed to delete', 'error'); }
+}
+
+// ============================================================
+// IDEAS: AI Generate
+// ============================================================
+async function generateIdeas(ideaId) {
+    const genBtn = document.getElementById('idea-gen-btn');
+    const stopBtn = document.getElementById('idea-stop-btn');
+    const contentEl = document.getElementById('idea-gen-content');
+
+    genBtn.style.display = 'none';
+    stopBtn.style.display = 'inline-flex';
+    contentEl.style.display = 'block';
+    contentEl.innerHTML = '<div class="ai-loading"><div class="spinner"></div> <span data-i18n="ai.generatingIdeas">Generating research ideas...</span></div>';
+
+    abortController = new AbortController();
+
+    try {
+        const body = {};
+        const idea = ideasList.find(i => i.id === ideaId);
+        if (idea) {
+            body.title = idea.title;
+            body.description = idea.description;
+            body.methodology = idea.methodology;
+        }
+
+        const res = await fetch(apiBase + '/ideas/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            signal: abortController.signal
+        });
+
+        await readSSEStream(res, contentEl, async () => {
+            showToast('Ideas generated!', 'success');
+            await loadIdeas();
+        });
+    } catch (e) {
+        if (e.name !== 'AbortError') showToast('Generation failed: ' + e.message, 'error');
+    }
+
+    genBtn.style.display = 'inline-flex';
+    stopBtn.style.display = 'none';
+    abortController = null;
+}
+
+async function refineIdea(id) {
+    const feedback = document.getElementById('idea-refine-input')?.value;
+    if (!feedback?.trim()) {
+        showToast('Please provide refinement feedback', 'error');
+        return;
+    }
+
+    const refineBtn = document.getElementById('idea-refine-btn');
+    const stopBtn = document.getElementById('idea-stop-btn');
+    const contentEl = document.getElementById('idea-gen-content');
+
+    refineBtn.style.display = 'none';
+    stopBtn.style.display = 'inline-flex';
+    contentEl.style.display = 'block';
+    contentEl.innerHTML = '<div class="ai-loading"><div class="spinner"></div> <span data-i18n="ai.refiningIdea">Refining idea...</span></div>';
+
+    abortController = new AbortController();
+
+    try {
+        const res = await fetch(apiBase + '/ideas/' + id + '/refine', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ feedback }),
+            signal: abortController.signal
+        });
+
+        await readSSEStream(res, contentEl, async () => {
+            showToast('Idea refined!', 'success');
+            document.getElementById('idea-refine-input').value = '';
+            await loadIdeas();
+            const updated = ideasList.find(i => i.id === id);
+            if (updated) renderIdeaDetail(updated);
+        });
+    } catch (e) {
+        if (e.name !== 'AbortError') showToast('Refinement failed: ' + e.message, 'error');
+    }
+
+    refineBtn.style.display = 'inline-flex';
+    stopBtn.style.display = 'none';
+    abortController = null;
+}
+
+async function checkNovelty(id) {
+    const btn = document.getElementById('novelty-btn');
+    const contentEl = document.getElementById('novelty-content');
+    btn.disabled = true;
+    btn.textContent = '⏳ Checking...';
+    contentEl.style.display = 'block';
+    contentEl.innerHTML = '<div class="ai-loading"><div class="spinner"></div> Searching literature for similar work...</div>';
+
+    try {
+        const res = await fetch(apiBase + '/ideas/' + id + '/check-novelty', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        });
+
+        let fullText = '';
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                try {
+                    const data = JSON.parse(line.slice(6));
+                    if (data.type === 'phase') {
+                        const labels = { extracting_keywords: '🔑 Extracting keywords...', searching: '🔍 Searching literature...', assessing_novelty: '📊 Assessing novelty...' };
+                        contentEl.innerHTML = '<div class="ai-loading"><div class="spinner"></div> ' + (labels[data.phase] || data.phase) + '</div>';
+                    } else if (data.type === 'keywords') {
+                        contentEl.innerHTML = '<div style="padding:8px;font-size:12px;color:var(--text-muted);">Search queries: ' + data.queries.map(function(q) { return '<code style="background:var(--bg-tertiary);padding:1px 4px;border-radius:3px;">' + escapeHtml(q) + '</code>'; }).join(', ') + '</div>';
+                    } else if (data.type === 'papers_found') {
+                        contentEl.innerHTML += '<div style="padding:4px 8px;font-size:12px;color:var(--text-muted);">Found ' + data.count + ' related papers</div>';
+                    } else if (data.type === 'text') {
+                        fullText += data.content;
+                        contentEl.innerHTML = renderMarkdown(fullText);
+                    } else if (data.type === 'done') {
+                        if (data.noveltyScore != null) {
+                            const color = data.noveltyScore >= 7 ? '#22c55e' : data.noveltyScore >= 4 ? '#eab308' : '#ef4444';
+                            btn.innerHTML = '🔬 Score: <span style="font-weight:700;">' + data.noveltyScore + '/10</span>';
+                            btn.style.background = color;
+                        }
+                        showToast('Novelty check complete!', 'success');
+                        // Reload idea data
+                        await loadIdeas();
+                    } else if (data.type === 'error') {
+                        showToast('Error: ' + data.message, 'error');
+                    }
+                } catch (e) {}
+            }
+        }
+    } catch (e) {
+        contentEl.innerHTML = '<div style="color:#ef4444;padding:8px;">Error: ' + e.message + '</div>';
+    }
+
+    btn.disabled = false;
+    if (!btn.innerHTML.includes('Score:')) btn.textContent = '🔬 Check Novelty';
+}
+
+// ============================================================
+// IDEAS: AI Debate
+// ============================================================
+async function debateIdea(id) {
+    const btn = document.getElementById('debate-btn');
+    const stopBtn = document.getElementById('debate-stop-btn');
+    const stagesEl = document.getElementById('debate-stages');
+    const contentEl = document.getElementById('debate-content');
+
+    btn.style.display = 'none';
+    stopBtn.style.display = 'inline-flex';
+    stagesEl.style.display = 'block';
+    contentEl.style.display = 'block';
+    stagesEl.innerHTML = '<div class="ai-loading"><div class="spinner"></div> Starting debate...</div>';
+    contentEl.innerHTML = '';
+
+    abortController = new AbortController();
+
+    try {
+        const res = await fetch(apiBase + '/ideas/' + id + '/debate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+            signal: abortController.signal
+        });
+
+        let fullText = '';
+        let advocateContent = '';
+        let criticContent = '';
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                try {
+                    const data = JSON.parse(line.slice(6));
+                    if (data.type === 'phase') {
+                        stagesEl.innerHTML = '<div class="ai-loading"><div class="spinner"></div> ' + data.message + '</div>';
+                    } else if (data.type === 'debate_stage') {
+                        if (data.stage === 'advocate') {
+                            advocateContent = data.content;
+                            stagesEl.innerHTML =
+                                '<details open style="margin-bottom:8px;"><summary style="cursor:pointer;font-weight:600;color:#22c55e;">🟢 Advocate\'s Case</summary>' +
+                                '<div style="padding:8px;font-size:12px;border-left:3px solid #22c55e;margin-top:4px;max-height:200px;overflow-y:auto;">' + renderMarkdown(advocateContent) + '</div></details>';
+                        } else if (data.stage === 'critic') {
+                            criticContent = data.content;
+                            stagesEl.innerHTML +=
+                                '<details open style="margin-bottom:8px;"><summary style="cursor:pointer;font-weight:600;color:#ef4444;">🔴 Critic\'s Analysis</summary>' +
+                                '<div style="padding:8px;font-size:12px;border-left:3px solid #ef4444;margin-top:4px;max-height:200px;overflow-y:auto;">' + renderMarkdown(criticContent) + '</div></details>';
+                        }
+                    } else if (data.type === 'text') {
+                        fullText += data.content;
+                        contentEl.innerHTML = '<div style="border-left:3px solid #f59e0b;padding:8px;">' + renderMarkdown(fullText) + '</div>';
+                    } else if (data.type === 'done') {
+                        showToast('Debate complete!', 'success');
+                        await loadIdeas();
+                        const updated = ideasList.find(i => i.id === id);
+                        if (updated) renderIdeaDetail(updated);
+                    } else if (data.type === 'error') {
+                        showToast('Error: ' + data.message, 'error');
+                    }
+                } catch (e) {}
+            }
+        }
+    } catch (e) {
+        if (e.name !== 'AbortError') showToast('Debate failed: ' + e.message, 'error');
+    }
+
+    btn.style.display = 'inline-flex';
+    stopBtn.style.display = 'none';
+    abortController = null;
+}
+
+// ============================================================
+// IDEAS: Tree Search
+// ============================================================
+async function treeSearchIdeas() {
+    const btn = document.getElementById('tree-search-btn');
+    const stopBtn = document.getElementById('tree-stop-btn');
+    const vizEl = document.getElementById('tree-search-visualization');
+    const contentEl = document.getElementById('tree-search-content');
+
+    btn.style.display = 'none';
+    stopBtn.style.display = 'inline-flex';
+    vizEl.style.display = 'block';
+    contentEl.style.display = 'block';
+    vizEl.innerHTML = '<div class="ai-loading"><div class="spinner"></div> Initializing tree search...</div>';
+    contentEl.innerHTML = '';
+
+    abortController = new AbortController();
+
+    // Gather context from current idea if selected
+    var body = {};
+    if (selectedIdeaId) {
+        var idea = ideasList.find(function(i) { return i.id === selectedIdeaId; });
+        if (idea) {
+            body.topic = idea.title;
+            body.constraints = idea.description;
+            if (idea.sourceReviewId) body.reviewId = idea.sourceReviewId;
+            if (idea.sourceReferenceIds?.length) body.referenceIds = idea.sourceReferenceIds;
+        }
+    }
+
+    var seeds = [];
+    var allVariants = {};
+
+    try {
+        var res = await fetch(apiBase + '/ideas/tree-search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            signal: abortController.signal
+        });
+
+        var fullText = '';
+        var reader = res.body.getReader();
+        var decoder = new TextDecoder();
+        var buffer = '';
+
+        while (true) {
+            var result = await reader.read();
+            if (result.done) break;
+            buffer += decoder.decode(result.value, { stream: true });
+            var lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            for (var li = 0; li < lines.length; li++) {
+                var line = lines[li];
+                if (!line.startsWith('data: ')) continue;
+                try {
+                    var data = JSON.parse(line.slice(6));
+                    if (data.type === 'phase') {
+                        vizEl.innerHTML = renderTreeViz(seeds, allVariants, null) +
+                            '<div class="ai-loading" style="margin-top:8px;"><div class="spinner"></div> ' + data.message + '</div>';
+                    } else if (data.type === 'seed') {
+                        seeds.push(data.seed);
+                        vizEl.innerHTML = renderTreeViz(seeds, allVariants, null);
+                    } else if (data.type === 'variant') {
+                        if (!allVariants[data.seedIndex]) allVariants[data.seedIndex] = [];
+                        allVariants[data.seedIndex].push(data.variant);
+                        vizEl.innerHTML = renderTreeViz(seeds, allVariants, null);
+                    } else if (data.type === 'best_selected') {
+                        vizEl.innerHTML = renderTreeViz(seeds, allVariants, data.best) +
+                            '<div style="margin-top:8px;padding:8px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:6px;font-size:12px;">' +
+                            '🏆 <strong>Best: ' + escapeHtml(data.best.title) + '</strong> (Score: ' + data.best.avgScore.toFixed(1) + '/10)</div>';
+                    } else if (data.type === 'text') {
+                        fullText += data.content;
+                        contentEl.innerHTML = renderMarkdown(fullText);
+                    } else if (data.type === 'done') {
+                        showToast('Tree search complete! New idea created.', 'success');
+                        await loadIdeas();
+                    } else if (data.type === 'error') {
+                        showToast('Error: ' + data.message, 'error');
+                    }
+                } catch (e) {}
+            }
+        }
+    } catch (e) {
+        if (e.name !== 'AbortError') showToast('Tree search failed: ' + e.message, 'error');
+    }
+
+    btn.style.display = 'inline-flex';
+    stopBtn.style.display = 'none';
+    abortController = null;
+}
+
+function renderTreeViz(seeds, allVariants, bestNode) {
+    if (seeds.length === 0) return '';
+    var html = '<div style="font-size:11px;padding:8px;background:var(--bg-tertiary);border-radius:6px;overflow-x:auto;">';
+    html += '<div style="font-weight:600;margin-bottom:6px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Idea Tree</div>';
+
+    for (var si = 0; si < seeds.length; si++) {
+        var s = seeds[si];
+        var isBest = bestNode && bestNode.id === s.id;
+        var scoreColor = s.avgScore >= 7 ? '#22c55e' : s.avgScore >= 5 ? '#eab308' : '#ef4444';
+        html += '<div style="margin-bottom:6px;padding:4px 8px;border-left:3px solid ' + scoreColor + ';background:' + (isBest ? 'rgba(34,197,94,0.15)' : 'transparent') + ';border-radius:0 4px 4px 0;">';
+        html += (isBest ? '🏆 ' : '🌱 ') + '<strong>' + escapeHtml(s.title) + '</strong>';
+        html += ' <span style="color:' + scoreColor + ';font-weight:600;">(' + s.avgScore.toFixed(1) + ')</span>';
+        html += '</div>';
+
+        var variants = allVariants[si] || [];
+        for (var vi = 0; vi < variants.length; vi++) {
+            var v = variants[vi];
+            var vIsBest = bestNode && bestNode.id === v.id;
+            var vColor = v.avgScore >= 7 ? '#22c55e' : v.avgScore >= 5 ? '#eab308' : '#ef4444';
+            html += '<div style="margin-left:20px;margin-bottom:4px;padding:3px 8px;border-left:2px solid ' + vColor + ';background:' + (vIsBest ? 'rgba(34,197,94,0.15)' : 'transparent') + ';border-radius:0 4px 4px 0;font-size:10px;">';
+            html += (vIsBest ? '🏆 ' : '├─ ') + escapeHtml(v.title);
+            html += ' <span style="color:' + vColor + ';font-weight:600;">(' + v.avgScore.toFixed(1) + ')</span>';
+            html += '</div>';
+        }
+    }
+    html += '</div>';
+    return html;
+}
+
+// ============================================================
+// IDEAS: Cross-Domain Discovery
+// ============================================================
+async function crossDomainDiscovery() {
+    var btn = document.getElementById('cross-domain-btn');
+    var stopBtn = document.getElementById('cross-stop-btn');
+    var contentEl = document.getElementById('cross-domain-content');
+
+    btn.style.display = 'none';
+    stopBtn.style.display = 'inline-flex';
+    contentEl.style.display = 'block';
+    contentEl.innerHTML = '<div class="ai-loading"><div class="spinner"></div> Analyzing cross-domain connections...</div>';
+
+    abortController = new AbortController();
+
+    try {
+        var res = await fetch(apiBase + '/ideas/cross-domain', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+            signal: abortController.signal
+        });
+
+        await readSSEStream(res, contentEl, function() {
+            showToast('Cross-domain analysis complete!', 'success');
+        });
+    } catch (e) {
+        if (e.name !== 'AbortError') showToast('Cross-domain analysis failed: ' + e.message, 'error');
+    }
+
+    btn.style.display = 'inline-flex';
+    stopBtn.style.display = 'none';
+    abortController = null;
+}
+
+// ============================================================
+// PLANS: CRUD
+// ============================================================
+async function loadPlans() {
+    try {
+        const res = await fetch(apiBase + '/plans');
+        plansList = await res.json();
+    } catch (e) { plansList = []; }
+    document.getElementById('plans-count').textContent = plansList.length;
+    renderPlansList();
+}
+
+function renderPlansList() {
+    const container = document.getElementById('plans-list');
+    document.getElementById('plans-count').textContent = plansList.length;
+    if (plansList.length === 0) {
+        container.innerHTML = '<div class="empty-state">' +
+            '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' +
+            '<h3 data-i18n="plans.emptyTitle">No Research Plans</h3>' +
+            '<p data-i18n="plans.emptyDesc">Create a plan to organize your research with objectives, timelines, and tasks.</p>' +
+            '</div>';
+        return;
+    }
+    container.innerHTML = plansList.map(plan => {
+        const totalTodos = plan.todos?.length || 0;
+        const doneTodos = plan.todos?.filter(t => t.done).length || 0;
+        const progress = totalTodos > 0 ? Math.round((doneTodos / totalTodos) * 100) : 0;
+
+        return '<div class="item-card ' + (selectedPlanId === plan.id ? 'active' : '') + '" onclick="selectPlan(\'' + plan.id + '\')">' +
+            '<div class="item-card-title">' + escapeHtml(plan.title) + '</div>' +
+            '<div class="item-card-meta">' +
+                '<span class="status-badge ' + (plan.status || 'draft') + '">' + (plan.status || 'draft') + '</span>' +
+                '<span>' + doneTodos + '/' + totalTodos + ' tasks</span>' +
+                '<span>' + new Date(plan.dateModified || plan.dateCreated || Date.now()).toLocaleDateString() + '</span>' +
+            '</div>' +
+            (plan.description ? '<div class="item-card-desc">' + escapeHtml(truncate(plan.description, 150)) + '</div>' : '') +
+            (totalTodos > 0 ? '<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:' + progress + '%"></div></div>' : '') +
+            '</div>';
+    }).join('');
+}
+
+async function createPlan() {
+    try {
+        const res = await fetch(apiBase + '/plans', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: 'New Research Plan',
+                description: '',
+                objectives: '',
+                timeline: '',
+                resources: '',
+                risks: '',
+                todos: [],
+                status: 'draft'
+            })
+        });
+        const plan = await res.json();
+        plansList.unshift(plan);
+        selectedPlanId = plan.id;
+        renderPlansList();
+        renderPlanDetail(plan);
+        showToast('Plan created', 'success');
+    } catch (e) { showToast('Failed to create plan', 'error'); }
+}
+
+function selectPlan(id) {
+    selectedPlanId = id;
+    renderPlansList();
+    const plan = plansList.find(p => p.id === id);
+    if (plan) renderPlanDetail(plan);
+}
+
+function renderPlanDetail(plan) {
+    const panel = document.getElementById('plan-detail');
+    panel.classList.add('visible');
+
+    const todosHtml = (plan.todos || []).map((todo, i) =>
+        '<li class="todo-item">' +
+            '<input type="checkbox" ' + (todo.done ? 'checked' : '') + ' onchange="togglePlanTodo(\'' + plan.id + '\', ' + i + ', this.checked)">' +
+            '<div>' +
+                (todo.phase ? '<div class="todo-phase">' + escapeHtml(todo.phase) + '</div>' : '') +
+                '<div class="todo-text ' + (todo.done ? 'done' : '') + '">' + escapeHtml(todo.text || todo.title || '') + '</div>' +
+                (todo.description ? '<div class="todo-desc">' + escapeHtml(todo.description) + '</div>' : '') +
+            '</div>' +
+        '</li>'
+    ).join('');
+
+    const totalTodos = plan.todos?.length || 0;
+    const doneTodos = plan.todos?.filter(t => t.done).length || 0;
+
+    panel.innerHTML =
+        '<div class="detail-header">' +
+            '<h3 data-i18n="plans.editTitle">Edit Plan</h3>' +
+            '<button class="btn btn-sm btn-danger" onclick="deletePlan(\'' + plan.id + '\')" title="Delete" data-i18n-title="actions.delete">&#128465;</button>' +
+            '<button class="btn btn-sm" onclick="closePlanDetail()" title="Close" data-i18n-title="actions.close">&times;</button>' +
+        '</div>' +
+        '<div class="detail-body">' +
+            '<div class="field-group">' +
+                '<label data-i18n="fields.title">Title</label>' +
+                '<input type="text" id="plan-title" value="' + escapeHtml(plan.title) + '" onchange="updatePlanField(\'' + plan.id + '\', \'title\', this.value)">' +
+            '</div>' +
+            '<div class="field-group">' +
+                '<label data-i18n="fields.description">Description</label>' +
+                '<textarea id="plan-desc" rows="3" onchange="updatePlanField(\'' + plan.id + '\', \'description\', this.value)">' + escapeHtml(plan.description || '') + '</textarea>' +
+            '</div>' +
+            '<div class="field-group">' +
+                '<label data-i18n="fields.objectives">Objectives</label>' +
+                '<textarea id="plan-objectives" rows="3" onchange="updatePlanField(\'' + plan.id + '\', \'objectives\', this.value)">' + escapeHtml(plan.objectives || '') + '</textarea>' +
+            '</div>' +
+            '<div class="field-group">' +
+                '<label data-i18n="fields.timeline">Timeline</label>' +
+                '<textarea id="plan-timeline" rows="2" onchange="updatePlanField(\'' + plan.id + '\', \'timeline\', this.value)">' + escapeHtml(plan.timeline || '') + '</textarea>' +
+            '</div>' +
+            '<div class="field-group">' +
+                '<label data-i18n="fields.resources">Resources</label>' +
+                '<textarea id="plan-resources" rows="2" onchange="updatePlanField(\'' + plan.id + '\', \'resources\', this.value)">' + escapeHtml(plan.resources || '') + '</textarea>' +
+            '</div>' +
+            '<div class="field-group">' +
+                '<label data-i18n="fields.risks">Risks</label>' +
+                '<textarea id="plan-risks" rows="2" onchange="updatePlanField(\'' + plan.id + '\', \'risks\', this.value)">' + escapeHtml(plan.risks || '') + '</textarea>' +
+            '</div>' +
+            '<div class="field-group">' +
+                '<label data-i18n="fields.status">Status</label>' +
+                '<select onchange="updatePlanField(\'' + plan.id + '\', \'status\', this.value)">' +
+                    '<option value="draft"' + (plan.status === 'draft' ? ' selected' : '') + ' data-i18n="status.draft">Draft</option>' +
+                    '<option value="active"' + (plan.status === 'active' ? ' selected' : '') + ' data-i18n="status.active">Active</option>' +
+                    '<option value="completed"' + (plan.status === 'completed' ? ' selected' : '') + ' data-i18n="status.completed">Completed</option>' +
+                '</select>' +
+            '</div>' +
+
+            /* Todo List */
+            '<div class="field-group">' +
+                '<label data-i18n="fields.todos">TODO List (' + doneTodos + '/' + totalTodos + ' completed)</label>' +
+                (todosHtml ? '<ul class="todo-list">' + todosHtml + '</ul>' : '<p style="font-size:12px;color:var(--text-muted);" data-i18n="plans.noTodos">No tasks yet. Add one below or generate with AI.</p>') +
+                '<div class="todo-add-row">' +
+                    '<input type="text" id="plan-new-todo" placeholder="Add a new task..." data-i18n-placeholder="plans.addTodoPlaceholder" onkeydown="if(event.key===\'Enter\')addPlanTodo(\'' + plan.id + '\')">' +
+                    '<button class="btn btn-sm" onclick="addPlanTodo(\'' + plan.id + '\')" data-i18n="actions.add">Add</button>' +
+                '</div>' +
+            '</div>' +
+
+            /* AI Section */
+            '<div class="ai-section">' +
+                '<h4 data-i18n="ai.planTitle">AI Plan Generation</h4>' +
+                '<p class="hint" data-i18n="ai.planHint">AI will generate a detailed research plan with objectives, timeline, milestones, and actionable TODO items.</p>' +
+                '<div class="field-group" style="margin-bottom:8px;">' +
+                    '<label style="font-size:11px;">Methodology Template</label>' +
+                    '<select id="plan-methodology" style="font-size:12px;">' +
+                        '<option value="auto">Auto-detect</option>' +
+                        '<option value="experimental">Experimental Design</option>' +
+                        '<option value="computational">Computational/Simulation</option>' +
+                        '<option value="survey">Survey Research</option>' +
+                        '<option value="case_study">Case Study</option>' +
+                        '<option value="mixed_methods">Mixed Methods</option>' +
+                        '<option value="meta_analysis">Meta-Analysis</option>' +
+                        '<option value="literature_review">Systematic Literature Review</option>' +
+                    '</select>' +
+                '</div>' +
+                '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+                    '<button class="btn btn-primary btn-sm" onclick="generatePlan(\'' + plan.id + '\')" id="plan-gen-btn" data-i18n="ai.generatePlan">Generate Research Plan</button>' +
+                    '<button class="btn btn-sm" style="background:#f59e0b;color:#fff;border:none;" onclick="assessPlanRisks(\'' + plan.id + '\')" id="plan-risk-btn">⚠️ Risk Assessment</button>' +
+                    '<button class="btn btn-sm" style="background:#06b6d4;color:#fff;border:none;" onclick="estimatePlanResources(\'' + plan.id + '\')" id="plan-resource-btn">📊 Resource Estimate</button>' +
+                    '<button class="btn btn-danger btn-sm" onclick="stopGeneration()" id="plan-stop-btn" style="display:none;" data-i18n="ai.stop">Stop</button>' +
+                '</div>' +
+                '<div class="ai-content" id="plan-gen-content" style="' + (plan.content ? '' : 'display:none') + '">' +
+                    (plan.content ? renderMarkdown(plan.content) : '') +
+                '</div>' +
+            '</div>' +
+        '</div>';
+}
+
+function closePlanDetail() {
+    document.getElementById('plan-detail').classList.remove('visible');
+    selectedPlanId = null;
+    renderPlansList();
+}
+
+async function updatePlanField(id, field, value) {
+    try {
+        await fetch(apiBase + '/plans/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ [field]: value })
+        });
+        const idx = plansList.findIndex(p => p.id === id);
+        if (idx >= 0) plansList[idx][field] = value;
+        renderPlansList();
+    } catch (e) { showToast('Failed to update', 'error'); }
+}
+
+async function togglePlanTodo(planId, todoIndex, done) {
+    const plan = plansList.find(p => p.id === planId);
+    if (!plan || !plan.todos) return;
+    plan.todos[todoIndex].done = done;
+    try {
+        await fetch(apiBase + '/plans/' + planId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ todos: plan.todos })
+        });
+        renderPlanDetail(plan);
+        renderPlansList();
+    } catch (e) { showToast('Failed to update todo', 'error'); }
+}
+
+async function addPlanTodo(planId) {
+    const input = document.getElementById('plan-new-todo');
+    const text = input?.value?.trim();
+    if (!text) return;
+
+    const plan = plansList.find(p => p.id === planId);
+    if (!plan) return;
+    if (!plan.todos) plan.todos = [];
+
+    plan.todos.push({ text, done: false });
+
+    try {
+        await fetch(apiBase + '/plans/' + planId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ todos: plan.todos })
+        });
+        renderPlanDetail(plan);
+        renderPlansList();
+        showToast('Task added', 'success');
+    } catch (e) { showToast('Failed to add task', 'error'); }
+}
+
+async function deletePlan(id) {
+    if (!confirm('Delete this research plan?')) return;
+    try {
+        await fetch(apiBase + '/plans/' + id, { method: 'DELETE' });
+        plansList = plansList.filter(p => p.id !== id);
+        closePlanDetail();
+        showToast('Plan deleted', 'success');
+    } catch (e) { showToast('Failed to delete', 'error'); }
+}
+
+// ============================================================
+// PLANS: AI Generate
+// ============================================================
+async function generatePlan(id) {
+    const plan = plansList.find(p => p.id === id);
+
+    const genBtn = document.getElementById('plan-gen-btn');
+    const stopBtn = document.getElementById('plan-stop-btn');
+    const contentEl = document.getElementById('plan-gen-content');
+
+    genBtn.style.display = 'none';
+    stopBtn.style.display = 'inline-flex';
+    contentEl.style.display = 'block';
+    contentEl.innerHTML = '<div class="ai-loading"><div class="spinner"></div> <span data-i18n="ai.generatingPlan">Generating research plan...</span></div>';
+
+    abortController = new AbortController();
+
+    try {
+        const body = {};
+        if (plan) {
+            body.title = plan.title;
+            body.description = plan.description;
+            body.objectives = plan.objectives;
+        }
+        var methodSelect = document.getElementById('plan-methodology');
+        if (methodSelect && methodSelect.value !== 'auto') {
+            body.methodology = methodSelect.value;
+        }
+
+        const res = await fetch(apiBase + '/plans/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            signal: abortController.signal
+        });
+
+        await readSSEStream(res, contentEl, async () => {
+            showToast('Research plan generated!', 'success');
+            await loadPlans();
+            const updated = plansList.find(p => p.id === id);
+            if (updated) renderPlanDetail(updated);
+        });
+    } catch (e) {
+        if (e.name !== 'AbortError') showToast('Generation failed: ' + e.message, 'error');
+    }
+
+    genBtn.style.display = 'inline-flex';
+    stopBtn.style.display = 'none';
+    abortController = null;
+}
+
+// ============================================================
+// PLANS: Risk Assessment
+// ============================================================
+async function assessPlanRisks(id) {
+    var plan = plansList.find(function(p) { return p.id === id; });
+    if (!plan) return;
+
+    var btn = document.getElementById('plan-risk-btn');
+    var contentEl = document.getElementById('plan-gen-content');
+    btn.disabled = true;
+    btn.textContent = '⏳ Assessing...';
+    contentEl.style.display = 'block';
+    contentEl.innerHTML = '<div class="ai-loading"><div class="spinner"></div> Generating risk assessment matrix...</div>';
+
+    try {
+        var res = await fetch(apiBase + '/plans/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: plan.title,
+                description: plan.description || '',
+                objectives: plan.objectives || '',
+                riskAssessmentOnly: true
+            })
+        });
+
+        await readSSEStream(res, contentEl, function() {
+            showToast('Risk assessment complete!', 'success');
+        });
+    } catch (e) {
+        contentEl.innerHTML = '<div style="color:#ef4444;padding:8px;">Error: ' + e.message + '</div>';
+    }
+
+    btn.disabled = false;
+    btn.textContent = '⚠️ Risk Assessment';
+}
+
+// ============================================================
+// PLANS: Resource Estimation
+// ============================================================
+async function estimatePlanResources(id) {
+    var plan = plansList.find(function(p) { return p.id === id; });
+    if (!plan) return;
+
+    var btn = document.getElementById('plan-resource-btn');
+    var contentEl = document.getElementById('plan-gen-content');
+    btn.disabled = true;
+    btn.textContent = '⏳ Estimating...';
+    contentEl.style.display = 'block';
+    contentEl.innerHTML = '<div class="ai-loading"><div class="spinner"></div> Estimating resources and timeline...</div>';
+
+    try {
+        var res = await fetch(apiBase + '/plans/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: plan.title,
+                description: plan.description || '',
+                objectives: plan.objectives || '',
+                resourceEstimateOnly: true
+            })
+        });
+
+        await readSSEStream(res, contentEl, function() {
+            showToast('Resource estimation complete!', 'success');
+        });
+    } catch (e) {
+        contentEl.innerHTML = '<div style="color:#ef4444;padding:8px;">Error: ' + e.message + '</div>';
+    }
+
+    btn.disabled = false;
+    btn.textContent = '📊 Resource Estimate';
+}
+
+// ============================================================
+// Phase 3.3: Experiment Tracking
+// ============================================================
+
+async function loadExperiments() {
+    try {
+        const resp = await fetch(apiBase + '/experiments');
+        experimentsList = await resp.json();
+        renderExperimentsList();
+    } catch (e) {
+        console.error('Failed to load experiments:', e);
+        experimentsList = [];
+    }
+}
+
+function renderExperimentsList() {
+    const container = document.getElementById('experiments-list');
+    document.getElementById('experiments-count').textContent = experimentsList.length;
+
+    if (experimentsList.length === 0) {
+        container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-tertiary);font-size:13px;">No experiments yet. Click "New Experiment" to start tracking.</div>';
+        return;
+    }
+
+    const statusColors = {
+        'planned': '#3b82f6',
+        'running': '#f59e0b',
+        'completed': '#22c55e',
+        'failed': '#ef4444'
+    };
+
+    container.innerHTML = experimentsList.map(exp =>
+        '<div class="item-card' + (exp.id === selectedExperimentId ? ' active' : '') + '" onclick="selectExperiment(\'' + exp.id + '\')">' +
+            '<div style="display:flex;align-items:center;gap:6px;">' +
+                '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + (statusColors[exp.status] || '#999') + ';"></span>' +
+                '<strong style="font-size:13px;">' + escapeHtml(exp.name) + '</strong>' +
+            '</div>' +
+            '<div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">' +
+                '<span style="text-transform:capitalize;">' + (exp.status || 'planned') + '</span>' +
+                ' · ' + (exp.runs?.length || 0) + ' runs' +
+                (exp.tags?.length ? ' · ' + exp.tags.map(t => '<span style="background:var(--bg-tertiary);padding:1px 4px;border-radius:3px;font-size:10px;">' + escapeHtml(t) + '</span>').join(' ') : '') +
+            '</div>' +
+            '<div style="font-size:10px;color:var(--text-tertiary);margin-top:2px;">' + new Date(exp.dateCreated).toLocaleDateString() + '</div>' +
+        '</div>'
+    ).join('');
+}
+
+function selectExperiment(id) {
+    selectedExperimentId = id;
+    renderExperimentsList();
+    renderExperimentDetail();
+}
+
+function renderExperimentDetail() {
+    const container = document.getElementById('experiment-detail');
+    const exp = experimentsList.find(e => e.id === selectedExperimentId);
+    if (!exp) {
+        container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-tertiary);">Select an experiment</div>';
+        container.classList.remove('visible');
+        return;
+    }
+    container.classList.add('visible');
+
+    const statusColors = { 'planned': '#3b82f6', 'running': '#f59e0b', 'completed': '#22c55e', 'failed': '#ef4444' };
+
+    let html = '<div style="padding:16px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
+            '<h3 style="margin:0;">' + escapeHtml(exp.name) + '</h3>' +
+            '<div style="display:flex;gap:4px;">' +
+                '<select id="exp-status-select" onchange="updateExpStatus(\'' + exp.id + '\', this.value)" style="padding:4px 8px;border:1px solid var(--border-color);border-radius:6px;font-size:11px;background:var(--bg-tertiary);color:var(--text-primary);">' +
+                    '<option value="planned"' + (exp.status === 'planned' ? ' selected' : '') + '>📋 Planned</option>' +
+                    '<option value="running"' + (exp.status === 'running' ? ' selected' : '') + '>🔄 Running</option>' +
+                    '<option value="completed"' + (exp.status === 'completed' ? ' selected' : '') + '>✅ Completed</option>' +
+                    '<option value="failed"' + (exp.status === 'failed' ? ' selected' : '') + '>❌ Failed</option>' +
+                '</select>' +
+                '<button onclick="deleteExperiment(\'' + exp.id + '\')" class="btn btn-sm" style="color:#ef4444;" title="Delete">🗑️</button>' +
+            '</div>' +
+        '</div>';
+
+    // Description
+    if (exp.description) {
+        html += '<div style="margin-bottom:12px;color:var(--text-secondary);font-size:13px;">' + escapeHtml(exp.description) + '</div>';
+    }
+
+    // Tags
+    html += '<div style="margin-bottom:12px;">' +
+        '<label style="font-size:11px;font-weight:600;color:var(--text-tertiary);display:block;margin-bottom:4px;">Tags</label>' +
+        '<div style="display:flex;gap:4px;flex-wrap:wrap;">' +
+        (exp.tags || []).map(t => '<span style="background:var(--bg-tertiary);padding:2px 8px;border-radius:10px;font-size:11px;">' + escapeHtml(t) + '</span>').join('') +
+        '<button onclick="addExpTag(\'' + exp.id + '\')" style="background:none;border:1px dashed var(--border-color);padding:2px 8px;border-radius:10px;font-size:11px;cursor:pointer;color:var(--text-tertiary);">+ tag</button>' +
+        '</div></div>';
+
+    // Parameters (JSON editor)
+    html += '<div style="margin-bottom:12px;">' +
+        '<label style="font-size:11px;font-weight:600;color:var(--text-tertiary);display:block;margin-bottom:4px;">Parameters</label>' +
+        '<textarea id="exp-params" style="width:100%;height:80px;font-family:monospace;font-size:11px;padding:8px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-tertiary);color:var(--text-primary);resize:vertical;" onchange="updateExpParams(\'' + exp.id + '\')">' +
+        escapeHtml(JSON.stringify(exp.parameters || {}, null, 2)) + '</textarea></div>';
+
+    // Code Snippet
+    html += '<div style="margin-bottom:12px;">' +
+        '<label style="font-size:11px;font-weight:600;color:var(--text-tertiary);display:block;margin-bottom:4px;">Code Snippet</label>' +
+        '<textarea id="exp-code" style="width:100%;height:80px;font-family:monospace;font-size:11px;padding:8px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-tertiary);color:var(--text-primary);resize:vertical;" onchange="updateExpCode(\'' + exp.id + '\')">' +
+        escapeHtml(exp.codeSnippet || '') + '</textarea></div>';
+
+    // Current Metrics
+    html += '<div style="margin-bottom:12px;">' +
+        '<label style="font-size:11px;font-weight:600;color:var(--text-tertiary);display:block;margin-bottom:4px;">Metrics</label>' +
+        '<textarea id="exp-metrics" style="width:100%;height:60px;font-family:monospace;font-size:11px;padding:8px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-tertiary);color:var(--text-primary);resize:vertical;" onchange="updateExpMetrics(\'' + exp.id + '\')">' +
+        escapeHtml(JSON.stringify(exp.metrics || {}, null, 2)) + '</textarea></div>';
+
+    // Notes
+    html += '<div style="margin-bottom:12px;">' +
+        '<label style="font-size:11px;font-weight:600;color:var(--text-tertiary);display:block;margin-bottom:4px;">Notes</label>' +
+        '<textarea id="exp-notes" style="width:100%;height:60px;font-size:12px;padding:8px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-tertiary);color:var(--text-primary);resize:vertical;" onchange="updateExpNotes(\'' + exp.id + '\')">' +
+        escapeHtml(exp.notes || '') + '</textarea></div>';
+
+    // Add Run button
+    html += '<div style="margin-bottom:12px;border-top:1px solid var(--border-color);padding-top:12px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+            '<label style="font-size:12px;font-weight:600;">Experiment Runs (' + (exp.runs?.length || 0) + ')</label>' +
+            '<button onclick="addExperimentRun(\'' + exp.id + '\')" class="btn btn-primary btn-sm">+ Add Run</button>' +
+        '</div>';
+
+    // Runs table
+    if (exp.runs?.length > 0) {
+        // Collect all metric keys from runs
+        const metricKeys = new Set();
+        exp.runs.forEach(r => Object.keys(r.metrics || {}).forEach(k => metricKeys.add(k)));
+        const mKeys = [...metricKeys];
+
+        html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">' +
+            '<thead><tr style="background:var(--bg-tertiary);">' +
+            '<th style="padding:4px 6px;border:1px solid var(--border-color);text-align:left;">#</th>' +
+            '<th style="padding:4px 6px;border:1px solid var(--border-color);text-align:left;">Date</th>' +
+            '<th style="padding:4px 6px;border:1px solid var(--border-color);text-align:left;">Status</th>' +
+            mKeys.map(k => '<th style="padding:4px 6px;border:1px solid var(--border-color);text-align:right;">' + escapeHtml(k) + '</th>').join('') +
+            '<th style="padding:4px 6px;border:1px solid var(--border-color);text-align:left;">Notes</th>' +
+            '</tr></thead><tbody>';
+
+        exp.runs.forEach((run, i) => {
+            const statusIcon = run.status === 'completed' ? '✅' : run.status === 'failed' ? '❌' : '🔄';
+            html += '<tr>' +
+                '<td style="padding:4px 6px;border:1px solid var(--border-color);">' + (i + 1) + '</td>' +
+                '<td style="padding:4px 6px;border:1px solid var(--border-color);">' + new Date(run.timestamp).toLocaleString() + '</td>' +
+                '<td style="padding:4px 6px;border:1px solid var(--border-color);">' + statusIcon + '</td>' +
+                mKeys.map(k => '<td style="padding:4px 6px;border:1px solid var(--border-color);text-align:right;font-family:monospace;">' + (run.metrics?.[k] ?? '-') + '</td>').join('') +
+                '<td style="padding:4px 6px;border:1px solid var(--border-color);">' + escapeHtml(truncate(run.notes || '', 50)) + '</td>' +
+                '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+    } else {
+        html += '<div style="padding:12px;text-align:center;color:var(--text-tertiary);font-size:12px;">No runs recorded yet.</div>';
+    }
+
+    html += '</div></div>';
+    container.innerHTML = html;
+}
+
+async function createExperiment() {
+    const name = prompt('Experiment name:');
+    if (!name) return;
+    try {
+        const resp = await fetch(apiBase + '/experiments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+        });
+        const exp = await resp.json();
+        experimentsList.push(exp);
+        selectedExperimentId = exp.id;
+        renderExperimentsList();
+        renderExperimentDetail();
+        showToast('Experiment created!', 'success');
+    } catch (e) {
+        showToast('Error creating experiment: ' + e.message, 'error');
+    }
+}
+
+async function deleteExperiment(id) {
+    if (!confirm('Delete this experiment?')) return;
+    try {
+        await fetch(apiBase + '/experiments/' + id, { method: 'DELETE' });
+        experimentsList = experimentsList.filter(e => e.id !== id);
+        if (selectedExperimentId === id) selectedExperimentId = null;
+        renderExperimentsList();
+        const detailEl = document.getElementById('experiment-detail');
+        detailEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-tertiary);">Select an experiment</div>';
+        detailEl.classList.remove('visible');
+        showToast('Experiment deleted', 'success');
+    } catch (e) {
+        showToast('Error: ' + e.message, 'error');
+    }
+}
+
+async function updateExpField(id, field, value) {
+    try {
+        const body = {};
+        body[field] = value;
+        await fetch(apiBase + '/experiments/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const idx = experimentsList.findIndex(e => e.id === id);
+        if (idx !== -1) experimentsList[idx][field] = value;
+    } catch (e) {
+        showToast('Save error: ' + e.message, 'error');
+    }
+}
+
+function updateExpStatus(id, status) { updateExpField(id, 'status', status); renderExperimentsList(); }
+
+function updateExpParams(id) {
+    try {
+        const val = JSON.parse(document.getElementById('exp-params').value);
+        updateExpField(id, 'parameters', val);
+    } catch (e) { showToast('Invalid JSON for parameters', 'error'); }
+}
+
+function updateExpMetrics(id) {
+    try {
+        const val = JSON.parse(document.getElementById('exp-metrics').value);
+        updateExpField(id, 'metrics', val);
+    } catch (e) { showToast('Invalid JSON for metrics', 'error'); }
+}
+
+function updateExpCode(id) {
+    updateExpField(id, 'codeSnippet', document.getElementById('exp-code').value);
+}
+
+function updateExpNotes(id) {
+    updateExpField(id, 'notes', document.getElementById('exp-notes').value);
+}
+
+function addExpTag(id) {
+    const tag = prompt('Enter tag:');
+    if (!tag) return;
+    const exp = experimentsList.find(e => e.id === id);
+    if (!exp) return;
+    const tags = [...(exp.tags || []), tag];
+    updateExpField(id, 'tags', tags);
+    exp.tags = tags;
+    renderExperimentDetail();
+    renderExperimentsList();
+}
+
+async function addExperimentRun(id) {
+    const metricsStr = prompt('Enter metrics as JSON (e.g. {"accuracy": 0.95, "loss": 0.12}):', '{}');
+    if (metricsStr === null) return;
+    let metrics = {};
+    try { metrics = JSON.parse(metricsStr); } catch (e) { showToast('Invalid JSON', 'error'); return; }
+
+    const notes = prompt('Notes for this run:', '') || '';
+    const status = prompt('Status (completed/failed):', 'completed') || 'completed';
+
+    try {
+        const resp = await fetch(apiBase + '/experiments/' + id + '/runs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ metrics, notes, status })
+        });
+        const run = await resp.json();
+        const exp = experimentsList.find(e => e.id === id);
+        if (exp) {
+            if (!exp.runs) exp.runs = [];
+            exp.runs.push(run);
+        }
+        renderExperimentDetail();
+        renderExperimentsList();
+        showToast('Run recorded!', 'success');
+    } catch (e) {
+        showToast('Error: ' + e.message, 'error');
+    }
+}
+
+async function compareExperiments() {
+    // Select experiments to compare
+    if (experimentsList.length < 2) {
+        showToast('Need at least 2 experiments to compare', 'error');
+        return;
+    }
+
+    const ids = prompt('Enter experiment indices to compare (comma-separated, e.g. 1,2,3):', '1,2');
+    if (!ids) return;
+
+    const indices = ids.split(',').map(s => parseInt(s.trim()) - 1).filter(i => i >= 0 && i < experimentsList.length);
+    if (indices.length < 2) { showToast('Select at least 2 valid experiments', 'error'); return; }
+
+    const expIds = indices.map(i => experimentsList[i].id);
+
+    try {
+        const resp = await fetch(apiBase + '/experiments/compare', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ experimentIds: expIds })
+        });
+        const comparison = await resp.json();
+
+        // Show comparison in detail panel
+        const container = document.getElementById('experiment-detail');
+        let html = '<div style="padding:16px;"><h3 style="margin:0 0 12px;">📊 Experiment Comparison</h3>';
+
+        // Parameters comparison
+        if (comparison.parameterKeys.length > 0) {
+            html += '<h4 style="margin:8px 0 4px;">Parameters</h4>';
+            html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
+            html += '<thead><tr style="background:var(--bg-tertiary);"><th style="padding:4px 6px;border:1px solid var(--border-color);">Parameter</th>';
+            comparison.experiments.forEach(e => { html += '<th style="padding:4px 6px;border:1px solid var(--border-color);">' + escapeHtml(e.name) + '</th>'; });
+            html += '</tr></thead><tbody>';
+            comparison.parameterKeys.forEach(k => {
+                html += '<tr><td style="padding:4px 6px;border:1px solid var(--border-color);font-weight:500;">' + escapeHtml(k) + '</td>';
+                comparison.experiments.forEach(e => {
+                    html += '<td style="padding:4px 6px;border:1px solid var(--border-color);font-family:monospace;">' + (e.parameters?.[k] ?? '-') + '</td>';
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table></div>';
+        }
+
+        // Metrics comparison
+        if (comparison.metricKeys.length > 0) {
+            html += '<h4 style="margin:12px 0 4px;">Metrics</h4>';
+            html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
+            html += '<thead><tr style="background:var(--bg-tertiary);"><th style="padding:4px 6px;border:1px solid var(--border-color);">Metric</th>';
+            comparison.experiments.forEach(e => { html += '<th style="padding:4px 6px;border:1px solid var(--border-color);">' + escapeHtml(e.name) + '</th>'; });
+            html += '</tr></thead><tbody>';
+            comparison.metricKeys.forEach(k => {
+                html += '<tr><td style="padding:4px 6px;border:1px solid var(--border-color);font-weight:500;">' + escapeHtml(k) + '</td>';
+                comparison.experiments.forEach(e => {
+                    const val = e.metrics?.[k];
+                    html += '<td style="padding:4px 6px;border:1px solid var(--border-color);font-family:monospace;text-align:right;">' + (val ?? '-') + '</td>';
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table></div>';
+        }
+
+        // Run counts
+        html += '<h4 style="margin:12px 0 4px;">Summary</h4>';
+        html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
+        html += '<thead><tr style="background:var(--bg-tertiary);"><th style="padding:4px 6px;border:1px solid var(--border-color);">Experiment</th>' +
+            '<th style="padding:4px 6px;border:1px solid var(--border-color);">Status</th>' +
+            '<th style="padding:4px 6px;border:1px solid var(--border-color);">Runs</th></tr></thead><tbody>';
+        comparison.experiments.forEach(e => {
+            html += '<tr><td style="padding:4px 6px;border:1px solid var(--border-color);">' + escapeHtml(e.name) + '</td>' +
+                '<td style="padding:4px 6px;border:1px solid var(--border-color);text-transform:capitalize;">' + e.status + '</td>' +
+                '<td style="padding:4px 6px;border:1px solid var(--border-color);">' + e.runCount + '</td></tr>';
+        });
+        html += '</tbody></table></div></div>';
+
+        container.innerHTML = html;
+    } catch (e) {
+        showToast('Comparison error: ' + e.message, 'error');
+    }
+}
+
+</script>
+</body>
+</html>

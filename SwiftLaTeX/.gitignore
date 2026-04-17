@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# User config (contains API keys)
+config.json
+
+# User projects data (except example project)
+projects/*
+!projects/example-hello-world/
+
+# Compilation logs
+output/
+
+# Canvas session data
+scrapers/session.json
+
+# User data directories (library, projects, canvas)
+data/
+
+# Temp/debug files
+out.log
+temp_*.js
+_*.js
+
+# Superpowers plugin cache
+.superpowers/
+docs/superpowers/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/

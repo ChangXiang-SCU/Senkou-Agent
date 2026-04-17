@@ -1,0 +1,3822 @@
+<!DOCTYPE html>
+<html lang="en" translate="no" class="notranslate">
+<head>
+    <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
+    <title>Senkou Agent - Reference Library</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111113;
+            --bg-tertiary: #18181b;
+            --bg-hover: #1f1f23;
+            --bg-active: #27272a;
+            --border-color: #27272a;
+            --border-light: #3f3f46;
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-purple: #a855f7;
+            --accent-red: #ef4444;
+            --accent-yellow: #eab308;
+            --accent-orange: #f97316;
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            height: 48px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .top-bar .logo {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .top-bar .nav-links {
+            display: flex;
+            gap: 4px;
+            margin-left: 16px;
+        }
+
+        .top-bar .nav-link {
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+
+        .top-bar .nav-link:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .top-bar .nav-link.active { background: var(--accent-blue); color: white; }
+
+        .top-bar .spacer { flex: 1; }
+
+        .top-bar .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0 10px;
+            width: 280px;
+        }
+
+        .top-bar .search-box input {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 13px;
+            padding: 6px 8px;
+            width: 100%;
+            outline: none;
+        }
+
+        .top-bar .search-box svg { color: var(--text-muted); flex-shrink: 0; }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .btn:hover { background: var(--bg-hover); border-color: var(--border-light); }
+        .btn-primary { background: var(--accent-blue); border-color: var(--accent-blue); color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-danger { color: var(--accent-red); }
+        .btn-danger:hover { background: rgba(239,68,68,0.1); }
+        .btn-sm { padding: 4px 8px; font-size: 12px; }
+
+        /* Main Layout */
+        .main-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Left Panel - Collections */
+        .collections-panel {
+            width: 220px;
+            min-width: 180px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .collections-header {
+            padding: 12px 14px 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .collections-header button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 2px;
+            border-radius: var(--radius-sm);
+        }
+
+        .collections-header button:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+        .collections-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 8px;
+        }
+
+        .collection-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+            user-select: none;
+        }
+
+        .collection-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .collection-item.active { background: var(--accent-blue); color: white; }
+        .collection-item .count { margin-left: auto; font-size: 11px; color: var(--text-muted); }
+        .collection-item.active .count { color: rgba(255,255,255,0.7); }
+
+        .collections-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 8px 8px;
+        }
+
+        .tag-section {
+            padding: 4px 8px 12px;
+        }
+
+        .tag-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            padding: 8px 8px 4px;
+        }
+
+        .tag-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .tag-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .tag-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+        /* Center Panel - References List */
+        .references-panel {
+            flex: 1;
+            min-width: 400px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .references-toolbar {
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            flex-shrink: 0;
+        }
+
+        .references-toolbar .ref-count {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-right: 8px;
+        }
+
+        .sort-select {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .references-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 0;
+        }
+
+        .ref-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.1s;
+            gap: 10px;
+        }
+
+        .ref-item:hover { background: var(--bg-hover); }
+        .ref-item.active { background: var(--bg-active); border-left: 3px solid var(--accent-blue); }
+
+        .ref-item .ref-checkbox {
+            margin-top: 2px;
+            flex-shrink: 0;
+            width: 16px;
+            height: 16px;
+            appearance: none;
+            border: 1.5px solid var(--border-light);
+            border-radius: 3px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .ref-item .ref-checkbox:checked {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+
+        .ref-content { flex: 1; min-width: 0; }
+
+        .ref-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            line-height: 1.4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .ref-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .ref-meta .author { color: var(--text-secondary); }
+        .ref-meta .separator { color: var(--border-light); }
+        .ref-meta .year { color: var(--accent-blue); font-weight: 500; }
+
+        .ref-badges {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .ref-badge {
+            font-size: 10px;
+            padding: 1px 6px;
+            border-radius: 3px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+        }
+
+        .ref-badge.has-pdf { color: var(--accent-green); border-color: rgba(34,197,94,0.3); }
+        .ref-badge.unread { color: var(--accent-yellow); border-color: rgba(234,179,8,0.3); }
+        .ref-badge.reading { color: var(--accent-blue); border-color: rgba(59,130,246,0.3); }
+        .ref-badge.read { color: var(--accent-green); border-color: rgba(34,197,94,0.3); }
+
+        .ref-stars {
+            display: flex;
+            gap: 1px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .ref-star {
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .ref-star.active { color: var(--accent-yellow); }
+
+        /* Right Panel - Detail */
+        .detail-panel {
+            width: 380px;
+            min-width: 300px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .detail-panel.hidden { display: none; }
+
+        .detail-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .detail-tabs {
+            display: flex;
+            gap: 2px;
+            flex: 1;
+        }
+
+        .detail-tab {
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            background: none;
+            border: none;
+            transition: all 0.15s;
+        }
+
+        .detail-tab:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .detail-tab.active { background: var(--bg-tertiary); color: var(--text-primary); }
+
+        .detail-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: var(--radius-sm);
+            font-size: 18px;
+        }
+
+        .detail-close:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+        .detail-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .detail-field {
+            margin-bottom: 12px;
+        }
+
+        .detail-field label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .detail-field .value {
+            font-size: 13px;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .detail-field input, .detail-field textarea, .detail-field select {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            padding: 6px 10px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .detail-field input:focus, .detail-field textarea:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .detail-field textarea { resize: vertical; min-height: 80px; }
+
+        .detail-title-display {
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .detail-authors {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .detail-journal-year {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .detail-abstract {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .detail-tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .detail-tag {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .detail-tag .remove-tag {
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .detail-tag .remove-tag:hover { color: var(--accent-red); }
+
+        .detail-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .notes-editor {
+            width: 100%;
+            min-height: 200px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            padding: 12px;
+            font-size: 13px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            line-height: 1.6;
+            resize: vertical;
+            outline: none;
+        }
+
+        .notes-editor:focus { border-color: var(--accent-blue); }
+
+        /* PDF Viewer */
+        .pdf-viewer-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pdf-viewer-container iframe {
+            flex: 1;
+            border: none;
+            background: #1a1a1a;
+        }
+
+        /* AI Analysis Panel */
+        .ai-analysis-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .ai-analysis-toolbar {
+            display: flex;
+            gap: 6px;
+            padding: 8px 0;
+            flex-wrap: wrap;
+        }
+
+        .ai-analysis-toolbar .btn {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        .ai-analysis-toolbar .btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        .ai-analysis-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .ai-analysis-content h2 {
+            font-size: 15px;
+            margin: 18px 0 8px 0;
+            color: var(--accent-blue);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 4px;
+        }
+
+        .ai-analysis-content h2:first-child {
+            margin-top: 4px;
+        }
+
+        .ai-analysis-content h3 {
+            font-size: 13px;
+            margin: 12px 0 4px 0;
+            color: var(--text-secondary);
+        }
+
+        .ai-analysis-content ul, .ai-analysis-content ol {
+            padding-left: 18px;
+            margin: 6px 0;
+        }
+
+        .ai-analysis-content li {
+            margin: 4px 0;
+        }
+
+        .ai-analysis-content strong {
+            color: #e2e8f0;
+        }
+
+        .ai-analysis-content code {
+            background: var(--bg-secondary);
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .ai-analysis-content pre {
+            background: var(--bg-secondary);
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+
+        .ai-analysis-content blockquote {
+            border-left: 3px solid var(--accent-blue);
+            padding-left: 12px;
+            margin: 8px 0;
+            color: var(--text-secondary);
+        }
+
+        .ai-analysis-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 12px;
+        }
+
+        .ai-analysis-content th, .ai-analysis-content td {
+            border: 1px solid var(--border);
+            padding: 4px 8px;
+            text-align: left;
+        }
+
+        .ai-analysis-content th {
+            background: var(--bg-secondary);
+        }
+
+        .ai-loading-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 0;
+            color: var(--accent-blue);
+            font-size: 13px;
+        }
+
+        .ai-loading-indicator .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .ai-saved-analyses {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        .ai-saved-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .ai-saved-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .ai-saved-item .type { color: var(--text-primary); }
+        .ai-saved-item .date { color: var(--text-muted); font-size: 11px; }
+        .ai-saved-item .provider { color: var(--text-muted); font-size: 10px; }
+
+        .ai-custom-prompt {
+            width: 100%;
+            min-height: 60px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            padding: 8px;
+            font-size: 12px;
+            resize: vertical;
+            margin: 8px 0;
+        }
+
+        .ai-custom-prompt:focus {
+            border-color: var(--accent-blue);
+            outline: none;
+        }
+
+        .ai-status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Import Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.hidden { display: none; }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 600px;
+            max-width: 90vw;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 { font-size: 16px; font-weight: 600; }
+
+        .modal-body {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 12px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .import-format-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+
+        .import-format-tab {
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            cursor: pointer;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .import-format-tab.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+
+        .import-textarea {
+            width: 100%;
+            height: 300px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            padding: 12px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            resize: vertical;
+            outline: none;
+        }
+
+        .import-textarea:focus { border-color: var(--accent-blue); }
+
+        .drop-zone {
+            border: 2px dashed var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+            background: rgba(59,130,246,0.05);
+        }
+
+        .drop-zone svg { margin-bottom: 8px; }
+
+        /* Empty state */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            padding: 40px;
+            text-align: center;
+        }
+
+        .empty-state svg { margin-bottom: 16px; opacity: 0.5; }
+        .empty-state h3 { font-size: 16px; margin-bottom: 8px; color: var(--text-secondary); }
+        .empty-state p { font-size: 13px; max-width: 300px; line-height: 1.5; }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 10px 16px;
+            font-size: 13px;
+            color: var(--text-primary);
+            box-shadow: var(--shadow-md);
+            animation: slideIn 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.success { border-left: 3px solid var(--accent-green); }
+        .toast.error { border-left: 3px solid var(--accent-red); }
+        .toast.info { border-left: 3px solid var(--accent-blue); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+        /* Context menu */
+        .context-menu {
+            position: fixed;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            z-index: 3000;
+            min-width: 180px;
+            padding: 4px;
+        }
+
+        .context-menu.hidden { display: none; }
+
+        .context-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+        }
+
+        .context-menu-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .context-menu-item.danger { color: var(--accent-red); }
+        .context-menu-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
+
+        /* Resize handle */
+        .resize-handle-v {
+            width: 4px;
+            cursor: col-resize;
+            background: transparent;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .resize-handle-v:hover { background: var(--accent-blue); }
+
+        /* ========== Research Workflow Views (Phase 4-6) ========== */
+        .workflow-section-header {
+            padding: 12px 14px 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .workflow-section-header button {
+            background: none; border: none; color: var(--text-muted);
+            cursor: pointer; padding: 2px; border-radius: var(--radius-sm);
+        }
+        .workflow-section-header button:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+        /* Workflow Main Content Area */
+        .workflow-view {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .workflow-view.active { display: flex; }
+
+        .workflow-toolbar {
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .workflow-toolbar h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .workflow-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .workflow-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .workflow-card:hover { border-color: var(--border-light); background: var(--bg-tertiary); }
+        .workflow-card.active { border-color: var(--accent-blue); background: rgba(59, 130, 246, 0.05); }
+        .workflow-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+        .workflow-card-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .workflow-card-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+        .workflow-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .workflow-status.draft { background: rgba(113,113,122,0.15); color: var(--text-muted); }
+        .workflow-status.in_progress { background: rgba(59,130,246,0.15); color: var(--accent-blue); }
+        .workflow-status.completed { background: rgba(34,197,94,0.15); color: var(--accent-green); }
+
+        /* Workflow Detail Panel (right side) */
+        .workflow-detail {
+            display: none;
+            flex-direction: column;
+            width: 50%;
+            min-width: 400px;
+            border-left: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            overflow: hidden;
+        }
+        .workflow-detail.visible { display: flex; }
+        .workflow-detail-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .workflow-detail-header h3 {
+            font-size: 15px;
+            font-weight: 600;
+            flex: 1;
+        }
+        .workflow-detail-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        .workflow-detail-body .field-group {
+            margin-bottom: 16px;
+        }
+        .workflow-detail-body .field-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .workflow-detail-body .field-group input,
+        .workflow-detail-body .field-group textarea,
+        .workflow-detail-body .field-group select {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 8px 10px;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+        }
+        .workflow-detail-body .field-group input:focus,
+        .workflow-detail-body .field-group textarea:focus {
+            border-color: var(--accent-blue);
+        }
+        .workflow-detail-body textarea { resize: vertical; min-height: 60px; }
+
+        .workflow-actions {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        /* AI Generate Section in workflow */
+        .ai-generate-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-top: 16px;
+        }
+        .ai-generate-section h4 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .ai-generate-content {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            margin-top: 8px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+        .ai-generate-content h2 { font-size: 16px; margin: 16px 0 8px; color: var(--text-primary); }
+        .ai-generate-content h3 { font-size: 14px; margin: 12px 0 6px; color: var(--text-primary); }
+        .ai-generate-content ul, .ai-generate-content ol { padding-left: 20px; margin: 8px 0; }
+        .ai-generate-content li { margin: 4px 0; }
+        .ai-generate-content p { margin: 8px 0; }
+        .ai-generate-content blockquote { border-left: 3px solid var(--accent-blue); padding-left: 12px; color: var(--text-muted); }
+        .ai-generate-content strong { color: var(--text-primary); }
+        .ai-generate-content code { background: var(--bg-tertiary); padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+
+        /* Reference Chips */
+        .ref-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+        .ref-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .ref-chip .remove-chip {
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1;
+        }
+        .ref-chip .remove-chip:hover { color: var(--accent-red); }
+
+        /* Todo items in plans */
+        .todo-list { list-style: none; padding: 0; }
+        .todo-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .todo-item:last-child { border-bottom: none; }
+        .todo-item input[type="checkbox"] {
+            margin-top: 2px;
+            accent-color: var(--accent-blue);
+        }
+        .todo-item .todo-text { flex: 1; font-size: 13px; line-height: 1.4; }
+        .todo-item .todo-text.done { text-decoration: line-through; color: var(--text-muted); }
+        .todo-phase { font-size: 12px; color: var(--accent-purple); font-weight: 500; margin-bottom: 4px; }
+        .todo-desc { font-size: 13px; color: var(--text-secondary); }
+
+        /* Score badges */
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .score-badge.high { background: rgba(34,197,94,0.15); color: var(--accent-green); }
+        .score-badge.medium { background: rgba(234,179,8,0.15); color: var(--accent-yellow); }
+        .score-badge.low { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+
+        /* Empty state for workflows */
+        .workflow-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            font-size: 14px;
+            text-align: center;
+            gap: 12px;
+            padding: 40px;
+        }
+        .workflow-empty svg { opacity: 0.4; }
+        .workflow-empty p { max-width: 300px; line-height: 1.5; }
+
+        /* Idea refinement */
+        .refinement-item {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            margin-top: 8px;
+            background: var(--bg-secondary);
+        }
+        .refinement-item .refinement-date {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        /* Translation Popup */
+        #translate-popup {
+            transition: opacity 0.15s;
+        }
+        #translate-popup.hidden {
+            display: none !important;
+        }
+        .translate-loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        .translate-loading .spinner {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Folder tree indent */
+        .folder-node { padding-left: 0; }
+        .folder-node .folder-children { padding-left: 16px; }
+        .folder-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            color: var(--text-secondary);
+            user-select: none;
+        }
+        .folder-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+        .folder-item.active { background: var(--accent-blue); color: #fff; }
+        .folder-toggle {
+            width: 14px;
+            text-align: center;
+            font-size: 10px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+    <a class="logo" href="dashboard.html">Senkou</a>
+    <div class="nav-links">
+        <a class="nav-link" href="dashboard.html" data-i18n="nav.dashboard">Dashboard</a>
+        <a class="nav-link active" href="#" onclick="switchWorkflowView('library');return false;" data-i18n="nav.library">Library</a>
+        <a class="nav-link" href="#" onclick="switchWorkflowView('reviews');return false;" data-i18n="nav.reviews">Reviews</a>
+    </div>
+    <div class="spacer"></div>
+    <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="search-input" placeholder="Search references..." data-i18n-placeholder="library.searchReferences" oninput="debounceSearch()">
+    </div>
+    <button class="btn btn-primary" onclick="showSearchPapersModal()" data-i18n="library.searchPapers">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        Search Papers
+    </button>
+    <button class="btn" onclick="showImportModal()" data-i18n="library.import">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Import
+    </button>
+    <button class="btn" onclick="showAddManualModal()" data-i18n="library.addEntry">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+        Add Entry
+    </button>
+    <div id="i18n-toggle-container" style="margin-left:8px;"></div>
+</div>
+
+<!-- Main Layout -->
+<div class="main-container">
+
+    <!-- Folders Panel (Hierarchical) -->
+    <div class="collections-panel" id="collections-panel">
+        <div class="collections-header">
+            <span data-i18n="library.folders">Folders</span>
+            <button onclick="createFolder()" title="New Folder" data-i18n-title="library.newFolder">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+        </div>
+        <div class="collections-list" id="folder-tree">
+            <div class="collection-item active" onclick="selectFolder(null)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                <span data-i18n="library.allReferences">All References</span>
+            </div>
+        </div>
+        <div class="collections-divider"></div>
+        <div class="tag-section" id="tags-section"></div>
+
+        <div class="collections-divider"></div>
+
+        <!-- Research Workflow Navigation -->
+        <div class="workflow-section-header" data-i18n="library.researchWorkflow">Research Workflow</div>
+        <div style="padding: 4px 8px 8px;">
+            <div class="collection-item" id="nav-reviews" onclick="switchWorkflowView('reviews')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <span data-i18n="nav.reviews">Literature Reviews</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="resize-handle-v" id="resize-collections"></div>
+
+    <!-- Library View (References + Detail) -->
+    <div id="library-view" style="display:flex;flex:1;overflow:hidden;">
+        <!-- References Panel -->
+        <div class="references-panel">
+            <div class="references-toolbar">
+                <span class="ref-count" id="ref-count">0 references</span>
+                <div class="spacer" style="flex:1"></div>
+                <select class="sort-select" id="sort-select" onchange="loadReferences()">
+                    <option value="dateAdded" data-i18n="library.sortDateAdded">Date Added</option>
+                    <option value="year" data-i18n="library.sortYear">Year</option>
+                    <option value="title" data-i18n="library.sortTitle">Title</option>
+                    <option value="author" data-i18n="library.sortAuthor">Author</option>
+                </select>
+                <button class="btn btn-sm" onclick="exportSelected()" title="Export BibTeX" data-i18n-title="library.exportBibtex">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span data-i18n="btn.export">Export</span>
+                </button>
+            </div>
+            <div class="references-list" id="references-list"></div>
+        </div>
+
+        <div class="resize-handle-v" id="resize-detail"></div>
+
+        <!-- Detail Panel -->
+        <div class="detail-panel" id="detail-panel">
+            <div class="detail-header">
+                <div class="detail-tabs">
+                    <button class="detail-tab active" data-tab="info" onclick="switchDetailTab('info')" data-i18n="library.detailInfo">Info</button>
+                    <button class="detail-tab" data-tab="notes" onclick="switchDetailTab('notes')" data-i18n="library.detailNotes">Notes</button>
+                    <button class="detail-tab" data-tab="pdf" onclick="switchDetailTab('pdf')" data-i18n="library.detailPdf">PDF</button>
+                    <button class="detail-tab" data-tab="ai" onclick="switchDetailTab('ai')" data-i18n="library.detailAi">🤖 AI</button>
+                </div>
+                <button class="detail-close" onclick="closeDetail()">&times;</button>
+            </div>
+            <div class="detail-body" id="detail-body">
+                <div class="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+                    <h3 data-i18n="library.selectReference">Select a Reference</h3>
+                    <p data-i18n="library.selectReferenceDesc">Click on a reference to view its details</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Literature Reviews View -->
+    <div class="workflow-view" id="reviews-view">
+        <div style="display:flex;flex:1;overflow:hidden;">
+            <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+                <div class="workflow-toolbar">
+                    <h3 data-i18n="reviews.litReviews">📚 Literature Reviews</h3>
+                    <div style="flex:1"></div>
+                    <button class="btn btn-primary btn-sm" onclick="createReview()">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                        <span data-i18n="library.newReview">New Review</span>
+                    </button>
+                </div>
+                <div class="workflow-list" id="reviews-list"></div>
+            </div>
+            <div class="workflow-detail" id="review-detail"></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Import Modal -->
+<div class="modal-overlay hidden" id="import-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 data-i18n="library.importReferences">Import References</h3>
+            <button class="detail-close" onclick="hideImportModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="import-format-tabs">
+                <button class="import-format-tab active" data-format="bibtex" onclick="switchImportFormat('bibtex')" data-i18n="library.importBibtex">BibTeX</button>
+                <button class="import-format-tab" data-format="ris" onclick="switchImportFormat('ris')" data-i18n="library.importRIS">RIS</button>
+                <button class="import-format-tab" data-format="file" onclick="switchImportFormat('file')" data-i18n="library.fileUpload">File Upload</button>
+            </div>
+            <div id="import-bibtex" class="import-content">
+                <textarea class="import-textarea" id="import-text" placeholder="Paste BibTeX entries here...
+
+@article{smith2024,
+  title = {Example Paper Title},
+  author = {Smith, John and Doe, Jane},
+  year = {2024},
+  journal = {Nature},
+}"></textarea>
+            </div>
+            <div id="import-file" class="import-content" style="display:none">
+                <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <p data-i18n="library.dropFileHere">Drop .bib or .ris file here, or click to browse</p>
+                </div>
+                <input type="file" id="file-input" accept=".bib,.ris,.bibtex" style="display:none" onchange="handleFileImport(event)">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="hideImportModal()" data-i18n="btn.cancel">Cancel</button>
+            <button class="btn btn-primary" onclick="doImport()" data-i18n="btn.import">Import</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Manual Entry Modal -->
+<div class="modal-overlay hidden" id="manual-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 data-i18n="library.addReferenceManual">Add Reference</h3>
+            <button class="detail-close" onclick="hideManualModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="detail-field">
+                <label data-i18n="library.refType">Type</label>
+                <select id="manual-type">
+                    <option value="article" data-i18n="library.typeArticle">Journal Article</option>
+                    <option value="inproceedings" data-i18n="library.typeConference">Conference Paper</option>
+                    <option value="book" data-i18n="library.typeBook">Book</option>
+                    <option value="phdthesis" data-i18n="library.typePhd">PhD Thesis</option>
+                    <option value="mastersthesis" data-i18n="library.typeMasters">Master's Thesis</option>
+                    <option value="techreport" data-i18n="library.typeTechReport">Technical Report</option>
+                    <option value="misc" data-i18n="library.typeOther">Other</option>
+                </select>
+            </div>
+            <div class="detail-field">
+                <label data-i18n="library.refTitle">Title *</label>
+                <input type="text" id="manual-title" placeholder="Paper title">
+            </div>
+            <div class="detail-field">
+                <label data-i18n="library.refAuthors">Authors</label>
+                <input type="text" id="manual-author" placeholder="First Last and First Last">
+            </div>
+            <div class="detail-field">
+                <label data-i18n="library.refYear">Year</label>
+                <input type="text" id="manual-year" placeholder="2024">
+            </div>
+            <div class="detail-field">
+                <label data-i18n="library.refJournal">Journal / Conference</label>
+                <input type="text" id="manual-journal" placeholder="Journal or conference name">
+            </div>
+            <div class="detail-field">
+                <label data-i18n="library.refDoi">DOI</label>
+                <input type="text" id="manual-doi" placeholder="10.xxxx/xxxxx">
+            </div>
+            <div class="detail-field">
+                <label>URL</label>
+                <input type="text" id="manual-url" placeholder="https://...">
+            </div>
+            <div class="detail-field">
+                <label data-i18n="library.refCiteKey">Citation Key</label>
+                <input type="text" id="manual-citekey" placeholder="smith2024 (auto-generated if empty)">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="hideManualModal()" data-i18n="btn.cancel">Cancel</button>
+            <button class="btn btn-primary" onclick="doAddManual()" data-i18n="btn.add">Add</button>
+        </div>
+    </div>
+</div>
+
+<!-- Context Menu -->
+<div class="context-menu hidden" id="context-menu"></div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Paper Search Modal -->
+<div class="modal-overlay hidden" id="search-papers-modal">
+    <div class="modal" style="max-width:700px;">
+        <div class="modal-header">
+            <h3 data-i18n="search.title">Search Papers</h3>
+            <button class="detail-close" onclick="hideSearchPapersModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+                <div class="search-box" style="flex:1">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input type="text" id="paper-search-input" placeholder="Search by keyword, title, or author..." onkeydown="if(event.key==='Enter')searchPapers()" data-i18n-placeholder="search.placeholder">
+                </div>
+                <button class="btn btn-primary" onclick="searchPapers()" data-i18n="search.searchBtn">Search</button>
+            </div>
+            <!-- Multi-source selector -->
+            <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
+                <span style="font-size:11px;color:var(--text-muted);margin-right:4px;">Sources:</span>
+                <label style="font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:3px;cursor:pointer;">
+                    <input type="checkbox" class="search-source-cb" value="s2" checked style="width:13px;height:13px;"> S2
+                </label>
+                <label style="font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:3px;cursor:pointer;">
+                    <input type="checkbox" class="search-source-cb" value="arxiv" checked style="width:13px;height:13px;"> arXiv
+                </label>
+                <label style="font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:3px;cursor:pointer;">
+                    <input type="checkbox" class="search-source-cb" value="crossref" checked style="width:13px;height:13px;"> Crossref
+                </label>
+                <label style="font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:3px;cursor:pointer;">
+                    <input type="checkbox" class="search-source-cb" value="openalex" checked style="width:13px;height:13px;"> OpenAlex
+                </label>
+                <label id="search-source-tu-label" style="font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:3px;cursor:pointer;">
+                    <input type="checkbox" class="search-source-cb" value="pubmed" style="width:13px;height:13px;"> PubMed
+                    <span id="tu-status-dot" style="width:6px;height:6px;border-radius:50%;background:var(--text-muted);display:inline-block;" title="ToolUniverse status"></span>
+                </label>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+                <input type="text" id="doi-input" placeholder="Or enter DOI: 10.xxxx/xxxxx" style="flex:1;background:var(--bg-tertiary);border:1px solid var(--border-color);color:var(--text-primary);padding:8px 12px;border-radius:6px;font-size:13px;" onkeydown="if(event.key==='Enter')lookupDOI()" data-i18n-placeholder="search.doiPlaceholder">
+                <button class="btn" onclick="lookupDOI()" data-i18n="search.lookupDOI">Lookup DOI</button>
+            </div>
+            <div id="search-results" style="max-height:400px;overflow-y:auto;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Translation Popup -->
+<div id="translate-popup" class="hidden" style="position:fixed;z-index:10000;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;padding:12px;box-shadow:var(--shadow-lg);max-width:400px;min-width:240px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:11px;font-weight:600;color:var(--text-muted);" data-i18n="translate.title">Translation</span>
+        <div style="display:flex;gap:4px;">
+            <button class="btn btn-sm" onclick="translateSelection('free')" style="font-size:11px;" data-i18n="translate.free">Free</button>
+            <button class="btn btn-sm btn-primary" onclick="translateSelection('ai')" style="font-size:11px;" data-i18n="translate.ai">AI</button>
+            <button class="btn btn-sm" onclick="hideTranslatePopup()" style="font-size:11px;">&times;</button>
+        </div>
+    </div>
+    <div id="translate-result" style="font-size:13px;color:var(--text-primary);line-height:1.6;max-height:200px;overflow-y:auto;"></div>
+</div>
+
+<script src="i18n.js"></script>
+<script>
+// ============================================================
+// Project & API
+// ============================================================
+const urlParams = new URLSearchParams(window.location.search);
+const projectId = urlParams.get('projectId') || '';
+const API_BASE = projectId ? `/api/projects/${projectId}/library` : '/api/library';
+
+// ============================================================
+// State
+// ============================================================
+let allReferences = [];
+let collections = [];
+let folders = [];
+let selectedRefId = null;
+let selectedCollection = 'all';
+let selectedFolderId = null;
+let selectedTag = null;
+let checkedRefs = new Set();
+let currentDetailTab = 'info';
+let importFormat = 'bibtex';
+let searchTimeout = null;
+let currentWorkflowView = 'library'; // 'library', 'reviews'
+let reviewsList = [];
+let selectedReviewId = null;
+let workflowAbortController = null;
+
+// ============================================================
+// Init
+// ============================================================
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadFolders();
+    await loadReferences();
+    setupResizeHandles();
+    setupDropZone();
+    setupKeyboardShortcuts();
+    setupTranslationPopup();
+
+    // i18n toggle button
+    if (window.i18n) {
+        const container = document.getElementById('i18n-toggle-container');
+        if (container) container.appendChild(window.i18n.createToggleButton());
+    }
+
+    // Check ToolUniverse status for PubMed source indicator
+    checkToolUniverseStatus();
+
+    // Check if we should open a specific workflow view (from dashboard links)
+    const savedView = localStorage.getItem('libraryView');
+    if (savedView && ['reviews'].includes(savedView)) {
+        localStorage.removeItem('libraryView');
+        switchWorkflowView(savedView);
+    }
+});
+
+async function checkToolUniverseStatus() {
+    try {
+        const res = await fetch('/api/tools/status');
+        const data = await res.json();
+        const dot = document.getElementById('tu-status-dot');
+        const label = document.getElementById('search-source-tu-label');
+        if (dot) {
+            dot.style.background = data.available ? '#22c55e' : '#ef4444';
+            dot.title = data.available ? 'ToolUniverse online — PubMed available' : 'ToolUniverse offline';
+        }
+        if (label) {
+            const cb = label.querySelector('input[value="pubmed"]');
+            if (cb && data.available) cb.checked = true;
+        }
+    } catch (e) {
+        const dot = document.getElementById('tu-status-dot');
+        if (dot) { dot.style.background = '#ef4444'; dot.title = 'ToolUniverse unreachable'; }
+    }
+}
+
+// ============================================================
+// Data Loading
+// ============================================================
+async function loadFolders() {
+    try {
+        const res = await fetch(`${API_BASE}/folders`);
+        folders = await res.json();
+    } catch (e) {
+        folders = [];
+    }
+    renderFolderTree();
+}
+
+async function loadReferences() {
+    try {
+        const params = new URLSearchParams();
+        if (selectedFolderId) params.set('folderId', selectedFolderId);
+        if (selectedCollection && selectedCollection !== 'all') params.set('collection', selectedCollection);
+        if (selectedTag) params.set('tag', selectedTag);
+        const searchVal = document.getElementById('search-input')?.value;
+        if (searchVal) params.set('search', searchVal);
+        const sortVal = document.getElementById('sort-select')?.value;
+        if (sortVal) params.set('sort', sortVal);
+
+        const res = await fetch(`${API_BASE}/references?` + params.toString());
+        allReferences = await res.json();
+    } catch (e) {
+        allReferences = [];
+    }
+    renderReferences();
+    updateRefCount();
+}
+
+
+function renderTags() {
+    const tagsSection = document.getElementById('tags-section');
+    // Collect all tags from references
+    const tagCounts = {};
+    allReferences.forEach(r => {
+        (r.tags || []).forEach(t => {
+            tagCounts[t] = (tagCounts[t] || 0) + 1;
+        });
+    });
+    const tagNames = Object.keys(tagCounts).sort();
+    if (tagNames.length === 0) {
+        tagsSection.innerHTML = '';
+        return;
+    }
+
+    const colors = ['#3b82f6', '#22c55e', '#a855f7', '#ef4444', '#eab308', '#f97316', '#06b6d4', '#ec4899'];
+    let html = '<div class="tag-section-title">Tags</div>';
+    tagNames.forEach((tag, i) => {
+        html += `<div class="tag-item ${selectedTag === tag ? 'active' : ''}" onclick="selectTag('${escapeHtml(tag)}')">
+            <span class="tag-dot" style="background:${colors[i % colors.length]}"></span>
+            ${escapeHtml(tag)}
+            <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">${tagCounts[tag]}</span>
+        </div>`;
+    });
+    tagsSection.innerHTML = html;
+}
+
+function renderReferences() {
+    const list = document.getElementById('references-list');
+    if (allReferences.length === 0) {
+        list.innerHTML = `<div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            <h3>No References</h3>
+            <p>Import BibTeX/RIS or add entries manually to build your library</p>
+        </div>`;
+        return;
+    }
+
+    list.innerHTML = allReferences.map(ref => {
+        const isActive = ref.id === selectedRefId;
+        const isChecked = checkedRefs.has(ref.id);
+        const authors = formatAuthors(ref.author);
+        const statusClass = ref.readStatus || 'unread';
+
+        return `<div class="ref-item ${isActive ? 'active' : ''}" onclick="selectRef('${ref.id}')" oncontextmenu="showRefContextMenu(event, '${ref.id}')">
+            <input type="checkbox" class="ref-checkbox" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleCheck('${ref.id}')">
+            <div class="ref-content">
+                <div class="ref-title">${escapeHtml(ref.title || 'Untitled')}</div>
+                <div class="ref-meta">
+                    <span class="author">${escapeHtml(authors)}</span>
+                    ${ref.year ? `<span class="separator">&middot;</span><span class="year">${ref.year}</span>` : ''}
+                    ${ref.journal ? `<span class="separator">&middot;</span><span>${escapeHtml(truncate(ref.journal, 40))}</span>` : ''}
+                </div>
+                <div class="ref-badges">
+                    <span class="ref-badge">${ref.type}</span>
+                    ${ref.pdfFile ? '<span class="ref-badge has-pdf">PDF</span>' : ''}
+                    <span class="ref-badge ${statusClass}">${statusClass}</span>
+                </div>
+            </div>
+            <div class="ref-stars">
+                ${[1,2,3,4,5].map(s => `<span class="ref-star ${(ref.rating || 0) >= s ? 'active' : ''}" onclick="event.stopPropagation(); setRating('${ref.id}', ${s})">&#9733;</span>`).join('')}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function updateRefCount() {
+    const el = document.getElementById('ref-count');
+    if (el) el.textContent = `${allReferences.length} reference${allReferences.length !== 1 ? 's' : ''}`;
+}
+
+// ============================================================
+// Reference Detail
+// ============================================================
+function selectRef(id) {
+    selectedRefId = id;
+    renderReferences();
+    renderDetail();
+}
+
+function renderDetail() {
+    const ref = allReferences.find(r => r.id === selectedRefId);
+    if (!ref) return;
+
+    const body = document.getElementById('detail-body');
+
+    if (currentDetailTab === 'info') {
+        body.innerHTML = `
+            <div class="detail-title-display">${escapeHtml(ref.title || 'Untitled')}</div>
+            <div class="detail-authors">${escapeHtml(ref.author || 'Unknown author')}</div>
+            <div class="detail-journal-year">${escapeHtml(ref.journal || '')} ${ref.year ? '(' + ref.year + ')' : ''}</div>
+
+            <div class="detail-actions">
+                ${ref.pdfFile ? `<button class="btn btn-sm" onclick="viewPdf('${ref.id}')">View PDF</button>` : ''}
+                <button class="btn btn-sm" onclick="document.getElementById('pdf-upload-${ref.id}').click()">
+                    ${ref.pdfFile ? 'Replace' : 'Attach'} PDF
+                </button>
+                <input type="file" id="pdf-upload-${ref.id}" accept=".pdf" style="display:none" onchange="uploadPdf('${ref.id}', event)">
+                ${ref.doi ? `<button class="btn btn-sm" onclick="window.open('https://doi.org/${ref.doi}','_blank')">DOI</button>` : ''}
+                ${ref.url ? `<button class="btn btn-sm" onclick="window.open('${ref.url}','_blank')">URL</button>` : ''}
+                <select class="sort-select" style="font-size:12px" onchange="updateReadStatus('${ref.id}', this.value)">
+                    <option value="unread" ${ref.readStatus === 'unread' ? 'selected' : ''}>Unread</option>
+                    <option value="reading" ${ref.readStatus === 'reading' ? 'selected' : ''}>Reading</option>
+                    <option value="read" ${ref.readStatus === 'read' ? 'selected' : ''}>Read</option>
+                </select>
+            </div>
+
+            ${ref.abstract ? `<div class="detail-section">
+                <div class="detail-section-title">Abstract</div>
+                <div class="detail-abstract">${escapeHtml(ref.abstract)}</div>
+            </div>` : ''}
+
+            <div class="detail-section">
+                <div class="detail-section-title">Tags</div>
+                <div class="detail-tags-container" id="tags-container">
+                    ${(ref.tags || []).map(t => `<span class="detail-tag">${escapeHtml(t)} <span class="remove-tag" onclick="removeTag('${ref.id}','${escapeHtml(t)}')">&times;</span></span>`).join('')}
+                    <input type="text" placeholder="Add tag..." style="background:none;border:none;color:var(--text-primary);font-size:12px;width:100px;outline:none;padding:2px 4px;" onkeydown="if(event.key==='Enter'){addTag('${ref.id}',this.value);this.value=''}">
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <div class="detail-section-title">Details</div>
+                <div class="detail-field"><label>Citation Key</label><div class="value">${escapeHtml(ref.citeKey || '-')}</div></div>
+                <div class="detail-field"><label>Type</label><div class="value">${ref.type}</div></div>
+                ${ref.volume ? `<div class="detail-field"><label>Volume</label><div class="value">${escapeHtml(ref.volume)}</div></div>` : ''}
+                ${ref.number ? `<div class="detail-field"><label>Number</label><div class="value">${escapeHtml(ref.number)}</div></div>` : ''}
+                ${ref.pages ? `<div class="detail-field"><label>Pages</label><div class="value">${escapeHtml(ref.pages)}</div></div>` : ''}
+                ${ref.publisher ? `<div class="detail-field"><label>Publisher</label><div class="value">${escapeHtml(ref.publisher)}</div></div>` : ''}
+                ${ref.doi ? `<div class="detail-field"><label>DOI</label><div class="value">${escapeHtml(ref.doi)}</div></div>` : ''}
+                <div class="detail-field"><label>Date Added</label><div class="value">${new Date(ref.dateAdded).toLocaleDateString()}</div></div>
+            </div>
+
+            <div class="detail-section" style="margin-top:20px">
+                <button class="btn btn-sm" onclick="editReference('${ref.id}')">Edit Details</button>
+                <button class="btn btn-sm btn-danger" style="margin-top:6px" onclick="deleteReference('${ref.id}')">Delete</button>
+            </div>
+        `;
+    } else if (currentDetailTab === 'notes') {
+        body.innerHTML = `
+            <div class="detail-section-title" style="margin-bottom:12px">Notes for: ${escapeHtml(truncate(ref.title, 50))}</div>
+            <textarea class="notes-editor" id="notes-editor" placeholder="Write your notes here... (Markdown supported)">${escapeHtml(ref.notes || '')}</textarea>
+            <div style="margin-top:8px; display:flex; gap:8px">
+                <button class="btn btn-sm btn-primary" onclick="saveNotes('${ref.id}')">Save Notes</button>
+                <span style="font-size:11px; color:var(--text-muted); align-self:center" id="notes-status"></span>
+            </div>
+        `;
+    } else if (currentDetailTab === 'pdf') {
+        if (ref.pdfFile) {
+            body.innerHTML = `
+                <div class="pdf-viewer-container" style="height:100%;display:flex;flex-direction:column">
+                    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-tertiary);border-bottom:1px solid var(--border-color);flex-shrink:0">
+                        <button class="btn btn-ghost btn-sm" onclick="toggleTranslationView()" title="Toggle Translation Panel">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/></svg>
+                            Translate
+                        </button>
+                        <button class="btn btn-ghost btn-sm" onclick="showFullTranslation('${ref.id}')" title="Full Page Translation">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                            Full Translation
+                        </button>
+                        <div style="flex:1"></div>
+                        <button class="btn btn-ghost btn-sm" onclick="window.open('${API_BASE}/pdf/${ref.pdfFile}', '_blank')" title="Open in New Tab">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        </button>
+                    </div>
+                    <div style="flex:1;display:flex;min-height:0">
+                        <iframe id="pdf-iframe" src="${API_BASE}/pdf/${ref.pdfFile}" style="flex:1;border:none;min-height:500px"></iframe>
+                        <div id="pdf-translation-panel" style="display:none;width:40%;border-left:1px solid var(--border-color);overflow-y:auto;padding:16px;background:var(--bg-secondary)">
+                            <h4 style="margin:0 0 12px 0;color:var(--text-primary)">Translation</h4>
+                            <div id="pdf-translation-content" style="color:var(--text-secondary);line-height:1.6;font-size:14px">
+                                Select text in the PDF to translate, or use "Full Translation" for the entire document.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            body.innerHTML = `
+                <div class="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+                    <h3>No PDF Attached</h3>
+                    <p>Upload a PDF file for this reference</p>
+                    <button class="btn btn-primary" style="margin-top:12px" onclick="document.getElementById('pdf-upload-detail').click()">Upload PDF</button>
+                    <input type="file" id="pdf-upload-detail" accept=".pdf" style="display:none" onchange="uploadPdf('${ref.id}', event)">
+                    <button class="btn btn-ghost" style="margin-top:8px" onclick="tryAutoDownloadPdf('${ref.id}')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Try Auto-Download PDF
+                    </button>
+                </div>
+            `;
+        }
+    } else if (currentDetailTab === 'ai') {
+        renderAIAnalysisTab(ref, body);
+    }
+}
+
+function switchDetailTab(tab) {
+    currentDetailTab = tab;
+    document.querySelectorAll('.detail-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tab);
+    });
+    renderDetail();
+}
+
+function closeDetail() {
+    selectedRefId = null;
+    renderReferences();
+    document.getElementById('detail-body').innerHTML = `
+        <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+            <h3>Select a Reference</h3>
+            <p>Click on a reference to view its details</p>
+        </div>
+    `;
+}
+
+// ============================================================
+// AI Analysis
+// ============================================================
+
+let currentAnalysisAbort = null;
+let isAnalyzing = false;
+
+const ANALYSIS_TYPES = {
+    full_analysis: { label: '📋 Full Analysis', desc: 'Comprehensive structured paper analysis' },
+    summary: { label: '📝 Summary', desc: 'Concise 300-500 word summary' },
+    key_findings: { label: '🔑 Key Findings', desc: 'Extract key findings with evidence' },
+    methodology: { label: '🔬 Methodology', desc: 'Detailed methodology analysis' },
+    translate: { label: '🌐 Translate', desc: 'Translate to Chinese/English' },
+    custom: { label: '✏️ Custom', desc: 'Ask a custom question' }
+};
+
+function renderAIAnalysisTab(ref, body) {
+    const analyses = ref.analyses || {};
+    const hasPdfOrAbstract = !!(ref.pdfFile || ref.abstract);
+
+    let savedHtml = '';
+    const savedTypes = Object.keys(analyses);
+    if (savedTypes.length > 0) {
+        savedHtml = `<div class="ai-saved-analyses">
+            <div class="detail-section-title" style="margin-bottom:6px">Previous Analyses</div>
+            ${savedTypes.map(type => {
+                const a = analyses[type];
+                const label = ANALYSIS_TYPES[type]?.label || type;
+                return `<div class="ai-saved-item" onclick="viewSavedAnalysis('${ref.id}', '${type}')">
+                    <span class="type">${label}</span>
+                    <span class="date">${new Date(a.timestamp).toLocaleDateString()}</span>
+                    <span class="provider">${a.provider}/${a.model?.split('/').pop()?.split('-').slice(0,2).join('-') || ''}</span>
+                </div>`;
+            }).join('')}
+        </div>`;
+    }
+
+    if (!hasPdfOrAbstract) {
+        body.innerHTML = `
+            <div class="ai-analysis-panel">
+                <div class="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
+                    <h3>No Content to Analyze</h3>
+                    <p>Upload a PDF or add an abstract to use AI analysis</p>
+                </div>
+                ${savedHtml}
+            </div>
+        `;
+        return;
+    }
+
+    body.innerHTML = `
+        <div class="ai-analysis-panel">
+            <div class="detail-section-title" style="margin-bottom:4px">AI Paper Analysis</div>
+            <div class="ai-analysis-toolbar">
+                <button class="btn" onclick="runAnalysis('${ref.id}', 'full_analysis')" title="${ANALYSIS_TYPES.full_analysis.desc}">📋 Full</button>
+                <button class="btn" onclick="runAnalysis('${ref.id}', 'summary')" title="${ANALYSIS_TYPES.summary.desc}">📝 Summary</button>
+                <button class="btn" onclick="runAnalysis('${ref.id}', 'key_findings')" title="${ANALYSIS_TYPES.key_findings.desc}">🔑 Findings</button>
+                <button class="btn" onclick="runAnalysis('${ref.id}', 'methodology')" title="${ANALYSIS_TYPES.methodology.desc}">🔬 Methods</button>
+                <button class="btn" onclick="runAnalysis('${ref.id}', 'translate', 'zh')" title="Translate to Chinese">🇨🇳 中文</button>
+                <button class="btn" onclick="runAnalysis('${ref.id}', 'translate', 'en')" title="Translate to English">🇺🇸 EN</button>
+            </div>
+
+            <div style="margin-bottom:8px">
+                <div class="detail-section-title" style="font-size:11px;margin-bottom:4px">Custom Question</div>
+                <textarea class="ai-custom-prompt" id="ai-custom-prompt" placeholder="Ask a specific question about this paper..."></textarea>
+                <button class="btn btn-sm btn-primary" onclick="runCustomAnalysis('${ref.id}')">Ask AI</button>
+            </div>
+
+            <div class="ai-status-bar" id="ai-status-bar" style="display:none">
+                <span id="ai-status-text"></span>
+                <button class="btn btn-sm" id="ai-stop-btn" onclick="stopAnalysis()" style="display:none">Stop</button>
+            </div>
+
+            <div class="ai-analysis-content" id="ai-analysis-content">
+                ${savedTypes.length > 0 ? '<div style="color:var(--text-muted);font-size:12px;padding:8px 0">Select an analysis type above, or view a previous analysis below.</div>' : '<div style="color:var(--text-muted);font-size:12px;padding:8px 0">Click an analysis type above to start AI analysis of this paper.</div>'}
+            </div>
+
+            ${savedHtml}
+        </div>
+    `;
+}
+
+async function runAnalysis(refId, type, language) {
+    if (isAnalyzing) {
+        showToast((window.i18n?.t('toast.analysisInProgress') || 'Analysis already in progress'), 'error');
+        return;
+    }
+
+    const contentEl = document.getElementById('ai-analysis-content');
+    const statusBar = document.getElementById('ai-status-bar');
+    const statusText = document.getElementById('ai-status-text');
+    const stopBtn = document.getElementById('ai-stop-btn');
+
+    if (!contentEl) return;
+
+    isAnalyzing = true;
+    statusBar.style.display = 'flex';
+    stopBtn.style.display = 'inline-block';
+    statusText.textContent = 'Starting analysis...';
+
+    contentEl.innerHTML = `
+        <div class="ai-loading-indicator">
+            <div class="spinner"></div>
+            <span>Analyzing paper with AI...</span>
+        </div>
+    `;
+
+    // Highlight active button
+    document.querySelectorAll('.ai-analysis-toolbar .btn').forEach(b => b.classList.remove('active'));
+
+    try {
+        const bodyData = {
+            referenceId: refId,
+            analysisType: type
+        };
+        if (language) bodyData.language = language;
+
+        const response = await fetch(`${API_BASE}/analyze`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyData)
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Analysis failed');
+        }
+
+        // Read SSE stream
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '';
+        let buffer = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    try {
+                        const data = JSON.parse(line.slice(6));
+                        if (data.type === 'start') {
+                            statusText.textContent = `Analyzing with ${data.provider}/${data.model}...`;
+                        } else if (data.type === 'text') {
+                            fullText += data.content;
+                            contentEl.innerHTML = renderMarkdown(fullText);
+                            // Auto-scroll to bottom
+                            contentEl.scrollTop = contentEl.scrollHeight;
+                        } else if (data.type === 'error') {
+                            showToast((window.i18n?.t('toast.aiError') || 'AI Error: ') + data.message, 'error');
+                            statusText.textContent = (window.i18n?.t('toast.errorPrefix') || 'Error: ') + data.message;
+                        } else if (data.type === 'done') {
+                            statusText.textContent = `Analysis complete (${data.totalLength} chars)`;
+                            // Add "Save to Notes" button
+                            const saveBtn = document.createElement('div');
+                            saveBtn.style.cssText = 'margin-top:12px; padding:8px 0; border-top:1px solid var(--border-color);';
+                            saveBtn.innerHTML = `<button class="btn btn-sm btn-primary" onclick="saveAnalysisToNotes('${refId}')">📝 Save to Notes</button> <span id="save-notes-status" style="font-size:12px;margin-left:8px;"></span>`;
+                            contentEl.appendChild(saveBtn);
+                            // Store fullText for saving
+                            contentEl.dataset.analysisText = fullText;
+                            // Refresh reference data to get saved analysis
+                            await loadReferences();
+                        }
+                    } catch (e) { }
+                }
+            }
+        }
+    } catch (err) {
+        contentEl.innerHTML = `<div class="empty-state"><p style="color:#ef4444">Error: ${escapeHtml(err.message)}</p></div>`;
+        statusText.textContent = 'Analysis failed';
+    } finally {
+        isAnalyzing = false;
+        const stopBtnEl = document.getElementById('ai-stop-btn');
+        if (stopBtnEl) stopBtnEl.style.display = 'none';
+    }
+}
+
+async function saveAnalysisToNotes(refId) {
+    const contentEl = document.getElementById('ai-analysis-content');
+    const statusEl = document.getElementById('save-notes-status');
+    const analysisText = contentEl?.dataset?.analysisText;
+    if (!analysisText) {
+        if (statusEl) statusEl.innerHTML = '<span style="color:var(--accent-red);">No analysis to save</span>';
+        return;
+    }
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--text-muted);">Saving...</span>';
+    try {
+        // Get existing notes first
+        const existingRes = await fetch(`${API_BASE}/references/${refId}/notes`);
+        const existingData = await existingRes.json();
+        const existingNotes = existingData.content || existingData.notes || '';
+        const timestamp = new Date().toLocaleString();
+        const separator = existingNotes ? '\n\n---\n\n' : '';
+        const newNotes = existingNotes + separator + `## AI Analysis (${timestamp})\n\n${analysisText}`;
+        await fetch(`${API_BASE}/references/${refId}/notes`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: newNotes })
+        });
+        if (statusEl) statusEl.innerHTML = '<span style="color:var(--accent-green);">✅ Saved to notes!</span>';
+        showToast((window.i18n?.t('toast.analysisSavedToNotes') || 'Analysis saved to notes'), 'success');
+    } catch (err) {
+        if (statusEl) statusEl.innerHTML = `<span style="color:var(--accent-red);">Error: ${err.message}</span>`;
+    }
+}
+
+function runCustomAnalysis(refId) {
+    const prompt = document.getElementById('ai-custom-prompt')?.value?.trim();
+    if (!prompt) {
+        showToast((window.i18n?.t('toast.enterQuestion') || 'Please enter a question'), 'error');
+        return;
+    }
+
+    if (isAnalyzing) {
+        showToast((window.i18n?.t('toast.analysisInProgress') || 'Analysis already in progress'), 'error');
+        return;
+    }
+
+    const contentEl = document.getElementById('ai-analysis-content');
+    const statusBar = document.getElementById('ai-status-bar');
+    const statusText = document.getElementById('ai-status-text');
+    const stopBtn = document.getElementById('ai-stop-btn');
+
+    isAnalyzing = true;
+    statusBar.style.display = 'flex';
+    stopBtn.style.display = 'inline-block';
+    statusText.textContent = 'Analyzing with custom prompt...';
+
+    contentEl.innerHTML = `
+        <div class="ai-loading-indicator">
+            <div class="spinner"></div>
+            <span>Processing your question...</span>
+        </div>
+    `;
+
+    // Build custom prompt that includes the user's question
+    const ref = allReferences.find(r => r.id === refId);
+    const paperContext = `Paper: "${ref?.title || 'Unknown'}" by ${ref?.author || 'Unknown'}`;
+
+    (async () => {
+        try {
+            const response = await fetch(`${API_BASE}/analyze`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    referenceId: refId,
+                    analysisType: 'custom',
+                    customPrompt: `${paperContext}\n\nUser's question: ${prompt}\n\nPlease answer based on the paper content below. Use Markdown formatting.\n\n`
+                })
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error || 'Analysis failed');
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let fullText = '';
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            if (data.type === 'start') {
+                                statusText.textContent = `Answering with ${data.provider}/${data.model}...`;
+                            } else if (data.type === 'text') {
+                                fullText += data.content;
+                                contentEl.innerHTML = renderMarkdown(fullText);
+                                contentEl.scrollTop = contentEl.scrollHeight;
+                            } else if (data.type === 'error') {
+                                showToast((window.i18n?.t('toast.aiError') || 'AI Error: ') + data.message, 'error');
+                            } else if (data.type === 'done') {
+                                statusText.textContent = 'Done';
+                            }
+                        } catch (e) { }
+                    }
+                }
+            }
+        } catch (err) {
+            contentEl.innerHTML = `<div class="empty-state"><p style="color:#ef4444">Error: ${escapeHtml(err.message)}</p></div>`;
+            statusText.textContent = 'Error';
+        } finally {
+            isAnalyzing = false;
+            const stopBtnEl = document.getElementById('ai-stop-btn');
+            if (stopBtnEl) stopBtnEl.style.display = 'none';
+        }
+    })();
+}
+
+function stopAnalysis() {
+    // For SSE, there's no easy abort; we set flag
+    isAnalyzing = false;
+    const statusText = document.getElementById('ai-status-text');
+    if (statusText) statusText.textContent = 'Stopped';
+    const stopBtn = document.getElementById('ai-stop-btn');
+    if (stopBtn) stopBtn.style.display = 'none';
+}
+
+async function viewSavedAnalysis(refId, type) {
+    try {
+        const res = await fetch(`${API_BASE}/references/${refId}/analysis`);
+        const data = await res.json();
+        const analysis = data.analyses?.[type];
+        if (!analysis) {
+            showToast((window.i18n?.t('toast.analysisNotFound') || 'Analysis not found'), 'error');
+            return;
+        }
+
+        const contentEl = document.getElementById('ai-analysis-content');
+        if (contentEl) {
+            contentEl.innerHTML = renderMarkdown(analysis.content);
+        }
+
+        const statusBar = document.getElementById('ai-status-bar');
+        const statusText = document.getElementById('ai-status-text');
+        if (statusBar && statusText) {
+            statusBar.style.display = 'flex';
+            statusText.textContent = `Saved: ${new Date(analysis.timestamp).toLocaleString()} | ${analysis.provider}/${analysis.model}`;
+        }
+    } catch (e) {
+        showToast((window.i18n?.t('toast.failedLoadAnalysis') || 'Failed to load analysis'), 'error');
+    }
+}
+
+// Simple Markdown renderer
+function renderMarkdown(text) {
+    if (!text) return '';
+
+    let html = escapeHtml(text);
+
+    // Headers
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+    // Bold and italic
+    html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+    // Code blocks
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    // Blockquotes
+    html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+
+    // Unordered lists
+    html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+
+    // Ordered lists
+    html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+
+    // Horizontal rules
+    html = html.replace(/^---$/gm, '<hr>');
+
+    // Links
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--accent-blue)">$1</a>');
+
+    // Tables
+    html = html.replace(/\|(.+)\|\n\|[-| :]+\|\n((?:\|.+\|\n?)+)/g, (match, headerRow, bodyRows) => {
+        const headers = headerRow.split('|').filter(c => c.trim()).map(c => `<th>${c.trim()}</th>`).join('');
+        const rows = bodyRows.trim().split('\n').map(row => {
+            const cells = row.split('|').filter(c => c.trim()).map(c => `<td>${c.trim()}</td>`).join('');
+            return `<tr>${cells}</tr>`;
+        }).join('');
+        return `<table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+    });
+
+    // Paragraphs
+    html = html.replace(/\n\n/g, '</p><p>');
+    html = html.replace(/\n/g, '<br>');
+
+    // Clean up nested tags
+    html = html.replace(/<p><h([1-3])>/g, '<h$1>');
+    html = html.replace(/<\/h([1-3])><\/p>/g, '</h$1>');
+    html = html.replace(/<p><ul>/g, '<ul>');
+    html = html.replace(/<\/ul><\/p>/g, '</ul>');
+    html = html.replace(/<p><blockquote>/g, '<blockquote>');
+    html = html.replace(/<\/blockquote><\/p>/g, '</blockquote>');
+    html = html.replace(/<p><pre>/g, '<pre>');
+    html = html.replace(/<\/pre><\/p>/g, '</pre>');
+    html = html.replace(/<p><hr><\/p>/g, '<hr>');
+    html = html.replace(/<p><table>/g, '<table>');
+    html = html.replace(/<\/table><\/p>/g, '</table>');
+
+    return `<p>${html}</p>`;
+}
+
+
+
+function selectTag(tag) {
+    selectedTag = selectedTag === tag ? null : tag;
+    if (currentWorkflowView !== 'library') {
+        switchWorkflowView('library');
+    }
+    renderFolderTree();
+    loadReferences();
+}
+
+// ============================================================
+// Import
+// ============================================================
+function showImportModal() {
+    document.getElementById('import-modal').classList.remove('hidden');
+}
+
+function hideImportModal() {
+    document.getElementById('import-modal').classList.add('hidden');
+}
+
+function switchImportFormat(format) {
+    importFormat = format;
+    document.querySelectorAll('.import-format-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.format === format);
+    });
+    document.getElementById('import-bibtex').style.display = (format === 'file') ? 'none' : 'block';
+    document.getElementById('import-file').style.display = (format === 'file') ? 'block' : 'none';
+
+    const textarea = document.getElementById('import-text');
+    if (format === 'bibtex') {
+        textarea.placeholder = 'Paste BibTeX entries here...\n\n@article{smith2024,\n  title = {Example Paper Title},\n  author = {Smith, John and Doe, Jane},\n  year = {2024},\n  journal = {Nature},\n}';
+    } else if (format === 'ris') {
+        textarea.placeholder = 'Paste RIS entries here...\n\nTY  - JOUR\nTI  - Example Paper Title\nAU  - Smith, John\nAU  - Doe, Jane\nPY  - 2024\nJO  - Nature\nER  -';
+    }
+}
+
+function handleFileImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const content = e.target.result;
+        if (file.name.endsWith('.ris')) {
+            importFormat = 'ris';
+        } else {
+            importFormat = 'bibtex';
+        }
+        document.getElementById('import-text').value = content;
+        switchImportFormat(importFormat);
+        document.getElementById('import-bibtex').style.display = 'block';
+        document.getElementById('import-file').style.display = 'none';
+    };
+    reader.readAsText(file);
+}
+
+async function doImport() {
+    const content = document.getElementById('import-text').value.trim();
+    if (!content) {
+        showToast((window.i18n?.t('toast.pasteOrUpload') || 'Please paste or upload content to import'), 'error');
+        return;
+    }
+    try {
+        const res = await fetch(`${API_BASE}/import`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                format: importFormat,
+                content: content,
+                collectionId: selectedCollection !== 'all' ? selectedCollection : null
+            })
+        });
+        const data = await res.json();
+        if (data.error) {
+            showToast((window.i18n?.t('toast.importErrorPrefix') || 'Import error: ') + data.error, 'error');
+        } else {
+            showToast((window.i18n?.t('toast.importSuccessPrefix') || 'Imported ') + data.added + (window.i18n?.t('toast.importSuccessMiddle') || ' references (') + data.skipped + (window.i18n?.t('toast.importSuccessSuffix') || ' duplicates skipped)'), 'success');
+            hideImportModal();
+            document.getElementById('import-text').value = '';
+            await loadReferences();
+        }
+    } catch (e) {
+        showToast((window.i18n?.t('toast.importFailedPrefix') || 'Import failed: ') + e.message, 'error');
+    }
+}
+
+// ============================================================
+// Manual Entry
+// ============================================================
+function showAddManualModal() {
+    document.getElementById('manual-modal').classList.remove('hidden');
+}
+
+function hideManualModal() {
+    document.getElementById('manual-modal').classList.add('hidden');
+}
+
+async function doAddManual() {
+    const title = document.getElementById('manual-title').value.trim();
+    if (!title) {
+        showToast((window.i18n?.t('toast.titleRequired') || 'Title is required'), 'error');
+        return;
+    }
+    const author = document.getElementById('manual-author').value.trim();
+    const year = document.getElementById('manual-year').value.trim();
+    let citeKey = document.getElementById('manual-citekey').value.trim();
+    if (!citeKey) {
+        const firstAuthor = author.split(/,|\band\b/)[0].trim().split(' ').pop() || 'unknown';
+        citeKey = firstAuthor.toLowerCase() + (year || new Date().getFullYear());
+    }
+
+    try {
+        await fetch(`${API_BASE}/references`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: document.getElementById('manual-type').value,
+                title, author, year, citeKey,
+                journal: document.getElementById('manual-journal').value.trim(),
+                doi: document.getElementById('manual-doi').value.trim(),
+                url: document.getElementById('manual-url').value.trim(),
+                collections: selectedCollection !== 'all' ? [selectedCollection] : []
+            })
+        });
+        hideManualModal();
+        // Clear form
+        ['manual-title', 'manual-author', 'manual-year', 'manual-journal', 'manual-doi', 'manual-url', 'manual-citekey'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+        await loadReferences();
+        showToast((window.i18n?.t('toast.refAdded') || 'Reference added'), 'success');
+    } catch (e) {
+        showToast((window.i18n?.t('toast.refAddFailed') || 'Failed to add reference'), 'error');
+    }
+}
+
+// ============================================================
+// Actions
+// ============================================================
+async function setRating(id, rating) {
+    try {
+        const ref = allReferences.find(r => r.id === id);
+        const newRating = ref && ref.rating === rating ? 0 : rating;
+        await fetch(`${API_BASE}/references/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rating: newRating })
+        });
+        await loadReferences();
+        if (selectedRefId === id) renderDetail();
+    } catch (e) { showToast((window.i18n?.t('toast.ratingFailed') || 'Failed to update rating'), 'error'); }
+}
+
+async function updateReadStatus(id, status) {
+    try {
+        await fetch(`${API_BASE}/references/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ readStatus: status })
+        });
+        await loadReferences();
+    } catch (e) { showToast((window.i18n?.t('toast.statusFailed') || 'Failed to update status'), 'error'); }
+}
+
+async function addTag(id, tag) {
+    if (!tag.trim()) return;
+    const ref = allReferences.find(r => r.id === id);
+    if (!ref) return;
+    const tags = [...(ref.tags || [])];
+    if (!tags.includes(tag.trim())) tags.push(tag.trim());
+    try {
+        await fetch(`${API_BASE}/references/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tags })
+        });
+        await loadReferences();
+        renderDetail();
+    } catch (e) { showToast((window.i18n?.t('toast.tagAddFailed') || 'Failed to add tag'), 'error'); }
+}
+
+async function removeTag(id, tag) {
+    const ref = allReferences.find(r => r.id === id);
+    if (!ref) return;
+    const tags = (ref.tags || []).filter(t => t !== tag);
+    try {
+        await fetch(`${API_BASE}/references/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tags })
+        });
+        await loadReferences();
+        renderDetail();
+    } catch (e) { showToast((window.i18n?.t('toast.tagRemoveFailed') || 'Failed to remove tag'), 'error'); }
+}
+
+async function uploadPdf(id, event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('pdf', file);
+    try {
+        const res = await fetch(`${API_BASE}/references/${id}/pdf`, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast((window.i18n?.t('toast.pdfUploaded') || 'PDF uploaded'), 'success');
+            await loadReferences();
+            renderDetail();
+        } else {
+            showToast((window.i18n?.t('toast.uploadFailed') || 'Upload failed'), 'error');
+        }
+    } catch (e) { showToast((window.i18n?.t('toast.uploadFailed') || 'Upload failed') + ': ' + e.message, 'error'); }
+}
+
+function viewPdf(id) {
+    switchDetailTab('pdf');
+}
+
+async function saveNotes(id) {
+    const notes = document.getElementById('notes-editor')?.value || '';
+    try {
+        await fetch(`${API_BASE}/references/${id}/notes`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notes })
+        });
+        document.getElementById('notes-status').textContent = 'Saved';
+        setTimeout(() => {
+            const el = document.getElementById('notes-status');
+            if (el) el.textContent = '';
+        }, 2000);
+        // Update local state
+        const ref = allReferences.find(r => r.id === id);
+        if (ref) ref.notes = notes;
+    } catch (e) { showToast((window.i18n?.t('toast.notesSaveFailed') || 'Failed to save notes'), 'error'); }
+}
+
+async function deleteReference(id) {
+    if (!confirm(window.i18n?.t('js.deleteReference') || 'Delete this reference?')) return;
+    try {
+        await fetch(`${API_BASE}/references/${id}`, { method: 'DELETE' });
+        selectedRefId = null;
+        closeDetail();
+        await loadReferences();
+        showToast((window.i18n?.t('toast.refDeleted') || 'Reference deleted'), 'success');
+    } catch (e) { showToast((window.i18n?.t('toast.deleteFailed') || 'Failed to delete'), 'error'); }
+}
+
+function editReference(id) {
+    const ref = allReferences.find(r => r.id === id);
+    if (!ref) return;
+    // Populate manual modal with existing data for editing
+    document.getElementById('manual-type').value = ref.type || 'article';
+    document.getElementById('manual-title').value = ref.title || '';
+    document.getElementById('manual-author').value = ref.author || '';
+    document.getElementById('manual-year').value = ref.year || '';
+    document.getElementById('manual-journal').value = ref.journal || '';
+    document.getElementById('manual-doi').value = ref.doi || '';
+    document.getElementById('manual-url').value = ref.url || '';
+    document.getElementById('manual-citekey').value = ref.citeKey || '';
+
+    // Change modal to edit mode
+    const modal = document.getElementById('manual-modal');
+    modal.classList.remove('hidden');
+    modal.querySelector('h3').textContent = 'Edit Reference';
+
+    // Override the add button to do update
+    const footer = modal.querySelector('.modal-footer');
+    footer.innerHTML = `
+        <button class="btn" onclick="hideManualModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="doUpdateReference('${id}')">Save Changes</button>
+    `;
+}
+
+async function doUpdateReference(id) {
+    try {
+        await fetch(`${API_BASE}/references/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: document.getElementById('manual-type').value,
+                title: document.getElementById('manual-title').value.trim(),
+                author: document.getElementById('manual-author').value.trim(),
+                year: document.getElementById('manual-year').value.trim(),
+                journal: document.getElementById('manual-journal').value.trim(),
+                doi: document.getElementById('manual-doi').value.trim(),
+                url: document.getElementById('manual-url').value.trim(),
+                citeKey: document.getElementById('manual-citekey').value.trim()
+            })
+        });
+        hideManualModal();
+        // Reset modal title
+        document.querySelector('#manual-modal h3').textContent = 'Add Reference';
+        document.querySelector('#manual-modal .modal-footer').innerHTML = `
+            <button class="btn" onclick="hideManualModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="doAddManual()">Add</button>
+        `;
+        await loadReferences();
+        renderDetail();
+        showToast((window.i18n?.t('toast.refUpdated') || 'Reference updated'), 'success');
+    } catch (e) { showToast((window.i18n?.t('toast.updateFailed') || 'Failed to update'), 'error'); }
+}
+
+async function exportSelected() {
+    const ids = checkedRefs.size > 0 ? Array.from(checkedRefs) : null;
+    try {
+        const res = await fetch(`${API_BASE}/export`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids, format: 'bibtex' })
+        });
+        const bibtex = await res.text();
+        // Download as file
+        const blob = new Blob([bibtex], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'references.bib';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast((window.i18n?.t('toast.bibtexExported') || 'BibTeX exported'), 'success');
+    } catch (e) { showToast((window.i18n?.t('toast.exportFailed') || 'Export failed'), 'error'); }
+}
+
+function toggleCheck(id) {
+    if (checkedRefs.has(id)) checkedRefs.delete(id);
+    else checkedRefs.add(id);
+    renderReferences();
+}
+
+// ============================================================
+// Context Menus
+// ============================================================
+function showRefContextMenu(event, id) {
+    event.preventDefault();
+    event.stopPropagation();
+    const menu = document.getElementById('context-menu');
+    let folderItems = folders.filter(f => !f.parentId).map(f =>
+        `<div class="context-menu-item" onclick="moveToFolder('${id}','${f.id}')">${escapeHtml(f.name)}</div>`
+    ).join('');
+
+    menu.innerHTML = `
+        <div class="context-menu-item" onclick="selectRef('${id}')">View Details</div>
+        <div class="context-menu-item" onclick="editReference('${id}')">Edit</div>
+        ${folderItems ? '<div class="context-menu-divider"></div><div class="context-menu-header">Move to Folder</div>' + folderItems : ''}
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item danger" onclick="deleteReference('${id}')">Delete</div>
+    `;
+
+    menu.style.left = event.clientX + 'px';
+    menu.style.top = event.clientY + 'px';
+    menu.classList.remove('hidden');
+
+    const close = () => { menu.classList.add('hidden'); document.removeEventListener('click', close); };
+    setTimeout(() => document.addEventListener('click', close), 10);
+}
+
+async function moveToFolder(refId, folderId) {
+    document.getElementById('context-menu').classList.add('hidden');
+    try {
+        const ref = allReferences.find(r => r.id === refId);
+        if (!ref) return;
+        const folderIds = ref.folderIds || [];
+        if (!folderIds.includes(folderId)) folderIds.push(folderId);
+        await fetch(`${API_BASE}/references/${refId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ folderIds })
+        });
+        await loadReferences();
+        showToast((window.i18n?.t('toast.movedToFolder') || 'Moved to folder'), 'success');
+    } catch (e) { showToast((window.i18n?.t('toast.moveFailed') || 'Failed to move'), 'error'); }
+}
+
+
+
+// ============================================================
+// Search
+// ============================================================
+function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => loadReferences(), 300);
+}
+
+// ============================================================
+// Resize Handles
+// ============================================================
+function setupResizeHandles() {
+    const colHandle = document.getElementById('resize-collections');
+    const detailHandle = document.getElementById('resize-detail');
+    const colPanel = document.getElementById('collections-panel');
+    const detailPanel = document.getElementById('detail-panel');
+
+    let isResizing = false;
+    let resizeTarget = null;
+
+    function startResize(e, target) {
+        isResizing = true;
+        resizeTarget = target;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+    }
+
+    colHandle.addEventListener('mousedown', (e) => startResize(e, 'collections'));
+    detailHandle.addEventListener('mousedown', (e) => startResize(e, 'detail'));
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        if (resizeTarget === 'collections') {
+            const newWidth = Math.max(150, Math.min(400, e.clientX));
+            colPanel.style.width = newWidth + 'px';
+        } else if (resizeTarget === 'detail') {
+            const newWidth = Math.max(250, Math.min(600, window.innerWidth - e.clientX));
+            detailPanel.style.width = newWidth + 'px';
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        isResizing = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+    });
+}
+
+// ============================================================
+// Drop Zone
+// ============================================================
+function setupDropZone() {
+    const dz = document.getElementById('drop-zone');
+    if (!dz) return;
+    dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('dragover'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+    dz.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dz.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                if (file.name.endsWith('.ris')) importFormat = 'ris';
+                else importFormat = 'bibtex';
+                document.getElementById('import-text').value = ev.target.result;
+                switchImportFormat(importFormat);
+                document.getElementById('import-bibtex').style.display = 'block';
+                document.getElementById('import-file').style.display = 'none';
+            };
+            reader.readAsText(file);
+        }
+    });
+}
+
+// ============================================================
+// Keyboard shortcuts
+// ============================================================
+function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd+I = Import
+        if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+            e.preventDefault();
+            showImportModal();
+        }
+        // Delete key on selected ref
+        if (e.key === 'Delete' && selectedRefId && !e.target.closest('input, textarea, select')) {
+            deleteReference(selectedRefId);
+        }
+        // Escape = close modals
+        if (e.key === 'Escape') {
+            hideImportModal();
+            hideManualModal();
+            document.getElementById('context-menu').classList.add('hidden');
+        }
+    });
+}
+
+// ============================================================
+// Utilities
+// ============================================================
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function truncate(str, len) {
+    if (!str) return '';
+    return str.length > len ? str.substring(0, len) + '...' : str;
+}
+
+function formatAuthors(authorStr) {
+    if (!authorStr) return 'Unknown';
+    const authors = authorStr.split(/\s+and\s+/i);
+    if (authors.length <= 2) return authors.join(' & ');
+    return authors[0] + ' et al.';
+}
+
+function showToast(msg, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = msg;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// ============================================================
+// Workflow View Switching
+// ============================================================
+function switchWorkflowView(view) {
+    currentWorkflowView = view;
+
+    // Hide all views
+    document.getElementById('library-view').style.display = 'none';
+    document.getElementById('reviews-view').classList.remove('active');
+
+    // Deactivate sidebar nav items
+    document.querySelectorAll('#nav-reviews').forEach(el => el.classList.remove('active'));
+
+    // Update top nav bar active state
+    const navLinks = document.querySelectorAll('.top-bar .nav-links .nav-link');
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+        const text = link.textContent.trim().toLowerCase();
+        if (view === 'library' && text === 'library') link.classList.add('active');
+        else if (view === 'reviews' && text === 'reviews') link.classList.add('active');
+    });
+
+    if (view === 'library') {
+        document.getElementById('library-view').style.display = 'flex';
+        renderFolderTree();
+    } else {
+        document.getElementById(view + '-view').classList.add('active');
+        document.getElementById('nav-' + view)?.classList.add('active');
+
+        // Load data for the view
+        if (view === 'reviews') loadReviews();
+    }
+}
+
+function selectCollection(colId) {
+    selectedCollection = colId;
+    selectedTag = null;
+    // Switch back to library view
+    if (currentWorkflowView !== 'library') {
+        switchWorkflowView('library');
+    }
+    loadReferences();
+    renderFolderTree();
+    renderTags();
+}
+
+// ============================================================
+// Literature Reviews (Phase 4)
+// ============================================================
+async function loadReviews() {
+    try {
+        const res = await fetch(`${API_BASE}/reviews`);
+        reviewsList = await res.json();
+    } catch (e) { reviewsList = []; }
+    renderReviewsList();
+}
+
+function renderReviewsList() {
+    const container = document.getElementById('reviews-list');
+    if (reviewsList.length === 0) {
+        container.innerHTML = `<div class="workflow-empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <h3>No Literature Reviews</h3>
+            <p>Create a review to synthesize and analyze your references on a specific topic.</p>
+        </div>`;
+        return;
+    }
+    container.innerHTML = reviewsList.map(r => `
+        <div class="workflow-card ${selectedReviewId === r.id ? 'active' : ''}" onclick="selectReview('${r.id}')">
+            <div class="workflow-card-title">${escapeHtml(r.title)}</div>
+            <div class="workflow-card-meta">
+                <span class="workflow-status ${r.status}">${r.status}</span>
+                <span>${r.referenceIds?.length || 0} refs</span>
+                <span>${new Date(r.dateModified).toLocaleDateString()}</span>
+            </div>
+            ${r.topic ? `<div class="workflow-card-desc">${escapeHtml(truncate(r.topic, 120))}</div>` : ''}
+        </div>
+    `).join('');
+}
+
+async function createReview() {
+    try {
+        const res = await fetch(`${API_BASE}/reviews`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: 'New Literature Review', topic: '', description: '', referenceIds: [] })
+        });
+        const review = await res.json();
+        reviewsList.unshift(review);
+        selectedReviewId = review.id;
+        renderReviewsList();
+        renderReviewDetail(review);
+        showToast((window.i18n?.t('toast.reviewCreated') || 'Review created'), 'success');
+    } catch (e) { showToast((window.i18n?.t('toast.reviewCreateFailed') || 'Failed to create review'), 'error'); }
+}
+
+async function selectReview(id) {
+    selectedReviewId = id;
+    renderReviewsList();
+    const review = reviewsList.find(r => r.id === id);
+    if (review) renderReviewDetail(review);
+}
+
+function renderReviewDetail(review) {
+    const panel = document.getElementById('review-detail');
+    panel.classList.add('visible');
+
+    const refOptions = allReferences.map(r =>
+        `<option value="${r.id}" ${review.referenceIds?.includes(r.id) ? 'selected' : ''}>${escapeHtml(truncate(r.title, 60))}</option>`
+    ).join('');
+
+    panel.innerHTML = `
+        <div class="workflow-detail-header">
+            <h3>Edit Review</h3>
+            <button class="btn btn-sm btn-danger" onclick="deleteReview('${review.id}')" title="Delete">🗑️</button>
+            <button class="btn btn-sm" onclick="closeReviewDetail()" title="Close">&times;</button>
+        </div>
+        <div class="workflow-detail-body">
+            <div class="field-group">
+                <label>Title</label>
+                <input type="text" id="review-title" value="${escapeHtml(review.title)}" onchange="updateReviewField('${review.id}', 'title', this.value)">
+            </div>
+            <div class="field-group">
+                <label>Research Topic</label>
+                <textarea id="review-topic" rows="2" onchange="updateReviewField('${review.id}', 'topic', this.value)">${escapeHtml(review.topic || '')}</textarea>
+            </div>
+            <div class="field-group">
+                <label>Description</label>
+                <textarea id="review-desc" rows="2" onchange="updateReviewField('${review.id}', 'description', this.value)">${escapeHtml(review.description || '')}</textarea>
+            </div>
+            <div class="field-group">
+                <label>References (${review.referenceIds?.length || 0} selected)</label>
+                <select multiple size="5" id="review-refs" style="min-height:100px;" onchange="updateReviewRefs('${review.id}')">
+                    ${refOptions}
+                </select>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Hold Ctrl/Cmd to select multiple</div>
+            </div>
+
+            <div class="ai-generate-section">
+                <h4>🤖 AI Literature Review Generation</h4>
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">
+                    AI will analyze the selected references and generate a comprehensive literature review covering themes, gaps, and chronological development.
+                </p>
+                <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center;">
+                    <select id="review-template-select" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);font-size:12px;">
+                        <option value="comprehensive">📋 Comprehensive</option>
+                        <option value="systematic">🔬 Systematic (PRISMA)</option>
+                        <option value="narrative">📖 Narrative</option>
+                        <option value="critical">⚡ Critical</option>
+                        <option value="scoping">🗺️ Scoping</option>
+                    </select>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;">
+                        <input type="checkbox" id="review-deep-mode" style="accent-color:var(--accent);">
+                        <span>🔄 Deep Mode</span>
+                        <span style="font-size:10px;color:var(--text-muted);" title="Deep mode: Generate → identify gaps → auto-search → regenerate (2-3 rounds)">(?)</span>
+                    </label>
+                </div>
+                <div style="display:flex;gap:6px;">
+                    <button class="btn btn-primary" onclick="generateReview('${review.id}')" id="review-gen-btn">
+                        ✨ Generate Literature Review
+                    </button>
+                    <button class="btn btn-danger" onclick="stopWorkflowGeneration()" id="review-stop-btn" style="display:none;">
+                        ⏹ Stop
+                    </button>
+                </div>
+                <div id="review-deep-progress" style="display:none;margin-top:8px;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;font-size:12px;"></div>
+                <div class="ai-generate-content" id="review-gen-content" style="${review.content ? '' : 'display:none'}">
+                    ${review.content ? renderMarkdown(review.content) : ''}
+                </div>
+                ${review.supplementaryPapers?.length ? `
+                <details style="margin-top:8px;font-size:12px;">
+                    <summary style="cursor:pointer;color:var(--accent);">📚 ${review.supplementaryPapers.length} supplementary papers found via deep review</summary>
+                    <ul style="margin-top:4px;padding-left:16px;">
+                        ${review.supplementaryPapers.map(p => `<li><strong>${p.title}</strong> (${p.year || '?'}) — <em>${p.gapFilled}</em></li>`).join('')}
+                    </ul>
+                </details>` : ''}
+            </div>
+
+            <div class="ai-generate-section" style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;">
+                <h4>🔎 Evidence Gathering</h4>
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">
+                    Ask a research question and AI will search through your papers' full text to find relevant evidence with quotes and page references.
+                </p>
+                <div style="display:flex;gap:6px;margin-bottom:8px;">
+                    <input type="text" id="evidence-question" placeholder="e.g., What methods were used for data collection?"
+                        style="flex:1;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);font-size:12px;"
+                        onkeydown="if(event.key==='Enter')gatherEvidence('${review.id}')">
+                    <button class="btn btn-primary" onclick="gatherEvidence('${review.id}')" id="evidence-btn" style="white-space:nowrap;">
+                        🔍 Search Evidence
+                    </button>
+                </div>
+                <div id="evidence-results" style="display:none;max-height:400px;overflow-y:auto;"></div>
+            </div>
+
+            <div class="ai-generate-section" style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;">
+                <h4>📊 AI Relevance Scoring</h4>
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">
+                    Score how relevant each reference is to this review's research topic. Papers are evaluated on a 0-10 scale.
+                </p>
+                <button class="btn btn-primary" onclick="scoreRelevance('${review.id}')" id="relevance-score-btn" ${!review.topic ? 'disabled title="Set a research topic first"' : ''}>
+                    📊 Score Relevance
+                </button>
+                <div id="relevance-results" style="display:none;margin-top:8px;max-height:350px;overflow-y:auto;"></div>
+            </div>
+
+            <div class="ai-generate-section" style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;">
+                <h4>✅ Review Quality Assessment</h4>
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">
+                    AI evaluates your generated literature review on coverage, citation quality, flow, writing, and gap identification.
+                </p>
+                <button class="btn btn-primary" onclick="assessReviewQuality('${review.id}')" id="quality-assess-btn" ${!review.content ? 'disabled title="Generate a review first"' : ''}>
+                    ✅ Assess Quality
+                </button>
+                <div id="quality-results" style="display:none;margin-top:8px;"></div>
+                ${review.qualityAssessment ? `
+                <div style="margin-top:8px;padding:10px;background:var(--bg-tertiary);border-radius:8px;font-size:12px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <span style="font-size:18px;font-weight:700;color:${review.qualityAssessment.overallScore >= 7 ? '#22c55e' : review.qualityAssessment.overallScore >= 5 ? '#eab308' : '#ef4444'};">
+                            ${review.qualityAssessment.overallScore}/10
+                        </span>
+                        <span style="color:var(--text-muted);">Overall Quality Score</span>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                        ${Object.entries(review.qualityAssessment.dimensions || {}).map(([k,v]) => `
+                            <span style="padding:2px 8px;border-radius:10px;background:${v >= 7 ? 'rgba(34,197,94,0.15)' : v >= 5 ? 'rgba(234,179,8,0.15)' : 'rgba(239,68,68,0.15)'};color:${v >= 7 ? '#22c55e' : v >= 5 ? '#eab308' : '#ef4444'};font-size:10px;font-weight:600;">
+                                ${k}: ${v}/10
+                            </span>
+                        `).join('')}
+                    </div>
+                </div>` : ''}
+            </div>
+        </div>
+    `;
+}
+
+function closeReviewDetail() {
+    document.getElementById('review-detail').classList.remove('visible');
+    selectedReviewId = null;
+    renderReviewsList();
+}
+
+async function updateReviewField(id, field, value) {
+    try {
+        await fetch(`${API_BASE}/reviews/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ [field]: value })
+        });
+        const idx = reviewsList.findIndex(r => r.id === id);
+        if (idx >= 0) reviewsList[idx][field] = value;
+        renderReviewsList();
+    } catch (e) { showToast((window.i18n?.t('toast.updateFailed') || 'Failed to update'), 'error'); }
+}
+
+async function updateReviewRefs(id) {
+    const select = document.getElementById('review-refs');
+    const selected = Array.from(select.selectedOptions).map(o => o.value);
+    await updateReviewField(id, 'referenceIds', selected);
+}
+
+async function deleteReview(id) {
+    if (!confirm(window.i18n?.t('js.deleteReview') || 'Delete this literature review?')) return;
+    try {
+        await fetch(`${API_BASE}/reviews/${id}`, { method: 'DELETE' });
+        reviewsList = reviewsList.filter(r => r.id !== id);
+        closeReviewDetail();
+        showToast((window.i18n?.t('toast.reviewDeleted') || 'Review deleted'), 'success');
+    } catch (e) { showToast((window.i18n?.t('toast.reviewDeleteFailed') || 'Failed to delete review'), 'error'); }
+}
+
+async function generateReview(id) {
+    const review = reviewsList.find(r => r.id === id);
+    if (!review || !review.referenceIds?.length) {
+        showToast((window.i18n?.t('toast.addRefToReview') || 'Please add at least one reference to the review'), 'error');
+        return;
+    }
+
+    const isDeep = document.getElementById('review-deep-mode')?.checked || false;
+    const template = document.getElementById('review-template-select')?.value || 'comprehensive';
+
+    const genBtn = document.getElementById('review-gen-btn');
+    const stopBtn = document.getElementById('review-stop-btn');
+    const content = document.getElementById('review-gen-content');
+    const progressDiv = document.getElementById('review-deep-progress');
+    genBtn.style.display = 'none';
+    stopBtn.style.display = 'inline-flex';
+    content.style.display = 'block';
+    const modeLabel = isDeep ? '🔄 Deep review (multi-round)...' : 'Generating literature review...';
+    content.innerHTML = `<div class="ai-loading-indicator"><div class="spinner"></div> ${modeLabel}</div>`;
+    if (progressDiv) { progressDiv.style.display = isDeep ? 'block' : 'none'; progressDiv.innerHTML = ''; }
+
+    workflowAbortController = new AbortController();
+
+    const endpoint = isDeep ? `${API_BASE}/reviews/${id}/generate-deep` : `${API_BASE}/reviews/${id}/generate`;
+
+    try {
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ template, style: template }),
+            signal: workflowAbortController.signal
+        });
+
+        let fullText = '';
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const dataStr = line.slice(6);
+                if (dataStr === '[DONE]') continue;
+                try {
+                    const data = JSON.parse(dataStr);
+                    if (data.type === 'text') {
+                        fullText += data.content;
+                        content.innerHTML = renderMarkdown(fullText);
+                    } else if (data.type === 'phase' && progressDiv) {
+                        const phaseLabels = {
+                            'initial_review': '📝 Generating initial review...',
+                            'gap_analysis': '🔍 Analyzing knowledge gaps...',
+                            'supplementary_search': `🔎 Searching for papers to fill ${data.gapCount || ''} gaps...`,
+                            'enhanced_review': '📝 Regenerating enhanced review...'
+                        };
+                        progressDiv.innerHTML = `<span style="color:var(--accent);">${phaseLabels[data.phase] || data.phase}</span> <span style="color:var(--text-muted);">(Round ${data.iteration}/${data.total})</span>`;
+                    } else if (data.type === 'gaps' && progressDiv) {
+                        const gapHtml = data.gaps.map(g => `<li>${g.gap}</li>`).join('');
+                        progressDiv.innerHTML += `<div style="margin-top:4px;"><strong>Gaps found:</strong><ul style="margin:2px 0 0 16px;padding:0;">${gapHtml}</ul></div>`;
+                    } else if (data.type === 'supplementary' && progressDiv) {
+                        progressDiv.innerHTML += `<div style="margin-top:4px;color:#22c55e;">✅ Found ${data.count} supplementary papers</div>`;
+                        fullText = ''; // Clear for regeneration
+                        content.innerHTML = `<div class="ai-loading-indicator"><div class="spinner"></div> Regenerating with ${data.count} additional papers...</div>`;
+                    } else if (data.type === 'info' && progressDiv) {
+                        progressDiv.innerHTML += `<div style="margin-top:4px;color:var(--text-muted);">ℹ️ ${data.message}</div>`;
+                    } else if (data.type === 'done') {
+                        const idx = reviewsList.findIndex(r => r.id === id);
+                        if (idx >= 0) {
+                            reviewsList[idx].content = fullText;
+                            reviewsList[idx].status = 'completed';
+                        }
+                        const extra = data.supplementaryCount ? ` (${data.supplementaryCount} supplementary papers integrated)` : '';
+                        showToast(`Literature review generated!${extra}`, 'success');
+                        if (progressDiv && data.supplementaryCount > 0) {
+                            progressDiv.innerHTML += `<div style="margin-top:4px;color:#22c55e;font-weight:500;">✅ Deep review complete — ${data.supplementaryCount} papers added</div>`;
+                        }
+                    } else if (data.type === 'error') {
+                        showToast('Error: ' + data.message, 'error');
+                    }
+                } catch (e) {}
+            }
+        }
+    } catch (e) {
+        if (e.name !== 'AbortError') {
+            showToast('Generation failed: ' + e.message, 'error');
+        }
+    }
+
+    genBtn.style.display = 'inline-flex';
+    stopBtn.style.display = 'none';
+    workflowAbortController = null;
+}
+
+async function gatherEvidence(reviewId) {
+    const question = document.getElementById('evidence-question')?.value?.trim();
+    if (!question) { showToast('Please enter a research question', 'error'); return; }
+
+    const review = reviewsList.find(r => r.id === reviewId);
+    if (!review?.referenceIds?.length) { showToast('No references in this review', 'error'); return; }
+
+    const btn = document.getElementById('evidence-btn');
+    const results = document.getElementById('evidence-results');
+    btn.disabled = true;
+    btn.textContent = '⏳ Searching...';
+    results.style.display = 'block';
+    results.innerHTML = '<div class="ai-loading-indicator"><div class="spinner"></div> Searching through papers for evidence...</div>';
+
+    try {
+        const res = await fetch(`${API_BASE.replace('/library', '')}/library/gather-evidence`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question, referenceIds: review.referenceIds })
+        });
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let progressHtml = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                try {
+                    const data = JSON.parse(line.slice(6));
+                    if (data.type === 'progress') {
+                        progressHtml = `<div style="padding:8px;color:var(--text-muted);font-size:12px;">📄 ${data.paper} — ${data.phase}${data.chunks ? ` (${data.chunks} chunks)` : ''}</div>`;
+                        results.innerHTML = progressHtml;
+                    } else if (data.type === 'evidence') {
+                        const items = data.results || [];
+                        if (items.length === 0) {
+                            results.innerHTML = '<div style="padding:12px;color:var(--text-muted);text-align:center;">No relevant evidence found for this question.</div>';
+                        } else {
+                            results.innerHTML = items.map(e => `
+                                <div style="padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                        <strong style="color:var(--text-primary);">${escapeHtml(e.paperTitle)}</strong>
+                                        <span style="background:${e.relevanceScore >= 8 ? '#22c55e' : e.relevanceScore >= 6 ? '#eab308' : '#ef4444'};color:#fff;padding:1px 6px;border-radius:10px;font-size:10px;font-weight:600;">${e.relevanceScore}/10</span>
+                                    </div>
+                                    <div style="color:var(--text-secondary);font-style:italic;margin:4px 0;padding:4px 8px;border-left:3px solid var(--accent);background:var(--bg-tertiary);border-radius:0 4px 4px 0;">"${escapeHtml(e.quote)}"</div>
+                                    <div style="color:var(--text-muted);margin-top:2px;">
+                                        <span>📄 ~p.${e.pageEstimate}</span> · <span>${e.reasoning || ''}</span>
+                                    </div>
+                                </div>
+                            `).join('');
+                        }
+                    } else if (data.type === 'error') {
+                        showToast('Error: ' + data.message, 'error');
+                    }
+                } catch (e) {}
+            }
+        }
+    } catch (e) {
+        results.innerHTML = `<div style="padding:12px;color:#ef4444;">Error: ${e.message}</div>`;
+    }
+
+    btn.disabled = false;
+    btn.textContent = '🔍 Search Evidence';
+}
+
+async function scoreRelevance(reviewId) {
+    const review = reviewsList.find(r => r.id === reviewId);
+    if (!review?.referenceIds?.length) { showToast('No references in this review', 'error'); return; }
+    if (!review.topic) { showToast('Please set a research topic first', 'error'); return; }
+
+    const btn = document.getElementById('relevance-score-btn');
+    const results = document.getElementById('relevance-results');
+    btn.disabled = true;
+    btn.textContent = '⏳ Scoring...';
+    results.style.display = 'block';
+    results.innerHTML = '<div class="ai-loading-indicator"><div class="spinner"></div> AI is evaluating paper relevance...</div>';
+
+    try {
+        const res = await fetch(`${API_BASE.replace('/library', '')}/library/score-relevance`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic: review.topic, referenceIds: review.referenceIds })
+        });
+        const data = await res.json();
+        if (data.error) {
+            results.innerHTML = `<div style="padding:8px;color:#ef4444;">${data.error}</div>`;
+        } else {
+            const scores = data.scores || [];
+            scores.sort((a, b) => (b.score || 0) - (a.score || 0));
+            results.innerHTML = scores.map(s => `
+                <div style="padding:6px 10px;border-bottom:1px solid var(--border);font-size:12px;display:flex;align-items:flex-start;gap:8px;">
+                    <span style="flex-shrink:0;min-width:36px;text-align:center;padding:2px 6px;border-radius:10px;font-weight:700;font-size:11px;background:${s.score >= 8 ? 'rgba(34,197,94,0.15)' : s.score >= 5 ? 'rgba(234,179,8,0.15)' : 'rgba(239,68,68,0.15)'};color:${s.score >= 8 ? '#22c55e' : s.score >= 5 ? '#eab308' : '#ef4444'};">${s.score}/10</span>
+                    <div style="flex:1;">
+                        <div style="font-weight:600;color:var(--text-primary);">${escapeHtml(s.title || s.paperId || 'Unknown')}</div>
+                        <div style="color:var(--text-muted);margin-top:2px;">${escapeHtml(s.reason || '')}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    } catch (e) {
+        results.innerHTML = `<div style="padding:8px;color:#ef4444;">Error: ${e.message}</div>`;
+    }
+
+    btn.disabled = false;
+    btn.textContent = '📊 Score Relevance';
+}
+
+async function assessReviewQuality(reviewId) {
+    const review = reviewsList.find(r => r.id === reviewId);
+    if (!review?.content) { showToast('Generate a review first', 'error'); return; }
+
+    const btn = document.getElementById('quality-assess-btn');
+    const results = document.getElementById('quality-results');
+    btn.disabled = true;
+    btn.textContent = '⏳ Assessing...';
+    results.style.display = 'block';
+    results.innerHTML = '<div class="ai-loading-indicator"><div class="spinner"></div> AI is evaluating review quality...</div>';
+
+    try {
+        const res = await fetch(`${API_BASE}/reviews/${reviewId}/assess`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        });
+
+        let fullText = '';
+        let assessment = null;
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                try {
+                    const data = JSON.parse(line.slice(6));
+                    if (data.type === 'text') {
+                        fullText += data.content;
+                        results.innerHTML = `<div style="font-size:12px;">${renderMarkdown(fullText)}</div>`;
+                    } else if (data.type === 'done') {
+                        assessment = data.assessment;
+                        const idx = reviewsList.findIndex(r => r.id === reviewId);
+                        if (idx >= 0 && assessment) reviewsList[idx].qualityAssessment = assessment;
+                        if (assessment) {
+                            const scoreColor = assessment.overallScore >= 7 ? '#22c55e' : assessment.overallScore >= 5 ? '#eab308' : '#ef4444';
+                            const dimHtml = Object.entries(assessment.dimensions || {}).map(([k,v]) =>
+                                `<span style="padding:2px 8px;border-radius:10px;background:${v >= 7 ? 'rgba(34,197,94,0.15)' : v >= 5 ? 'rgba(234,179,8,0.15)' : 'rgba(239,68,68,0.15)'};color:${v >= 7 ? '#22c55e' : v >= 5 ? '#eab308' : '#ef4444'};font-size:10px;font-weight:600;">${k}: ${v}/10</span>`
+                            ).join('');
+                            results.innerHTML = `
+                                <div style="padding:10px;background:var(--bg-tertiary);border-radius:8px;margin-bottom:8px;">
+                                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                                        <span style="font-size:22px;font-weight:700;color:${scoreColor};">${assessment.overallScore}/10</span>
+                                        <span style="color:var(--text-muted);font-size:12px;">Overall Quality Score</span>
+                                    </div>
+                                    <div style="display:flex;flex-wrap:wrap;gap:4px;">${dimHtml}</div>
+                                </div>
+                                <div style="font-size:12px;">${renderMarkdown(fullText)}</div>
+                            `;
+                        }
+                        showToast('Quality assessment complete!', 'success');
+                    } else if (data.type === 'error') {
+                        showToast('Error: ' + data.message, 'error');
+                    }
+                } catch (e) {}
+            }
+        }
+    } catch (e) {
+        results.innerHTML = `<div style="padding:8px;color:#ef4444;">Error: ${e.message}</div>`;
+    }
+
+    btn.disabled = false;
+    btn.textContent = '✅ Assess Quality';
+}
+
+// ============================================================
+// Folder Tree (Hierarchical)
+// ============================================================
+function renderFolderTree() {
+    const container = document.getElementById('folder-tree');
+    if (!container) return;
+
+    const rootFolders = folders.filter(f => !f.parentId).sort((a,b) => (a.order||0) - (b.order||0));
+    let html = `<div class="collection-item ${selectedFolderId === null ? 'active' : ''}" onclick="selectFolder(null)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+        <span data-i18n="library.allReferences">All References</span></div>`;
+
+    rootFolders.forEach(f => { html += renderFolderNode(f, 0); });
+    container.innerHTML = html;
+    if (window.i18n) window.i18n.applyTranslations();
+}
+
+function renderFolderNode(folder, depth) {
+    const children = folders.filter(f => f.parentId === folder.id).sort((a,b) => (a.order||0) - (b.order||0));
+    const isActive = selectedFolderId === folder.id;
+    let html = `<div class="collection-item ${isActive ? 'active' : ''}"
+        style="padding-left:${12 + depth * 16}px"
+        onclick="selectFolder('${folder.id}')"
+        oncontextmenu="showFolderContext(event, '${folder.id}')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+        <span>${escapeHtml(folder.name)}</span></div>`;
+    children.forEach(c => { html += renderFolderNode(c, depth + 1); });
+    return html;
+}
+
+function selectFolder(folderId) {
+    selectedFolderId = folderId;
+    selectedCollection = folderId ? null : 'all';
+    selectedTag = null;
+    if (currentWorkflowView !== 'library') switchWorkflowView('library');
+    loadReferences();
+    renderFolderTree();
+}
+
+async function createFolder() {
+    const name = prompt(window.i18n?.t('js.folderName') || 'Folder name:');
+    if (!name) return;
+    try {
+        const res = await fetch(`${API_BASE}/folders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, parentId: selectedFolderId || null })
+        });
+        const folder = await res.json();
+        folders.push(folder);
+        renderFolderTree();
+        showToast((window.i18n?.t('toast.folderCreated') || 'Folder created'), 'success');
+    } catch (e) { showToast((window.i18n?.t('toast.folderCreateFailed') || 'Failed to create folder'), 'error'); }
+}
+
+async function renameFolder(id) {
+    const folder = folders.find(f => f.id === id);
+    if (!folder) return;
+    const name = prompt(window.i18n?.t('js.newFolderName') || 'New name:', folder.name);
+    if (!name || name === folder.name) return;
+    try {
+        await fetch(`${API_BASE}/folders/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+        });
+        folder.name = name;
+        renderFolderTree();
+    } catch (e) { showToast((window.i18n?.t('toast.folderRenameFailed') || 'Failed to rename folder'), 'error'); }
+}
+
+async function deleteFolder(id) {
+    if (!confirm(window.i18n?.t('js.deleteFolder') || 'Delete this folder? References will not be deleted.')) return;
+    try {
+        await fetch(`${API_BASE}/folders/${id}`, { method: 'DELETE' });
+        folders = folders.filter(f => f.id !== id);
+        if (selectedFolderId === id) selectFolder(null);
+        else renderFolderTree();
+        showToast((window.i18n?.t('toast.folderDeleted') || 'Folder deleted'), 'success');
+    } catch (e) { showToast((window.i18n?.t('toast.folderDeleteFailed') || 'Failed to delete folder'), 'error'); }
+}
+
+function showFolderContext(event, folderId) {
+    event.preventDefault();
+    event.stopPropagation();
+    const menu = document.getElementById('context-menu');
+    menu.innerHTML = `<div class="context-menu-item" onclick="renameFolder('${folderId}');hideContextMenu()">Rename</div>
+        <div class="context-menu-item" onclick="createSubFolder('${folderId}');hideContextMenu()">New Subfolder</div>
+        <div class="context-menu-item" style="color:var(--accent-red)" onclick="deleteFolder('${folderId}');hideContextMenu()">Delete</div>`;
+    menu.style.left = event.clientX + 'px';
+    menu.style.top = event.clientY + 'px';
+    menu.classList.remove('hidden');
+    setTimeout(() => document.addEventListener('click', hideContextMenu, { once: true }), 10);
+}
+
+function hideContextMenu() {
+    document.getElementById('context-menu').classList.add('hidden');
+}
+
+async function createSubFolder(parentId) {
+    const name = prompt(window.i18n?.t('js.subfolderName') || 'Subfolder name:');
+    if (!name) return;
+    try {
+        const res = await fetch(`${API_BASE}/folders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, parentId })
+        });
+        const folder = await res.json();
+        folders.push(folder);
+        renderFolderTree();
+        showToast((window.i18n?.t('toast.subfolderCreated') || 'Subfolder created'), 'success');
+    } catch (e) { showToast((window.i18n?.t('toast.subfolderCreateFailed') || 'Failed to create subfolder'), 'error'); }
+}
+
+// ============================================================
+// Paper Search (Semantic Scholar + DOI)
+// ============================================================
+function showSearchPapersModal() {
+    document.getElementById('search-papers-modal').classList.remove('hidden');
+    document.getElementById('paper-search-input').focus();
+}
+
+function hideSearchPapersModal() {
+    document.getElementById('search-papers-modal').classList.add('hidden');
+}
+
+async function searchPapers() {
+    const query = document.getElementById('paper-search-input').value.trim();
+    if (!query) return;
+    const results = document.getElementById('search-results');
+
+    // Get selected sources
+    const sources = [...document.querySelectorAll('.search-source-cb:checked')].map(cb => cb.value).join(',');
+    if (!sources) {
+        results.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">Please select at least one source</div>`;
+        return;
+    }
+
+    results.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">${(window.i18n?.t('js.searching') || 'Searching across multiple sources...')}</div>`;
+    try {
+        const res = await fetch(`/api/search/papers/multi?query=${encodeURIComponent(query)}&sources=${sources}&limit=10`);
+        const data = await res.json();
+
+        // Show source errors as warnings
+        let errHtml = '';
+        if (data.errors) {
+            const errSources = Object.entries(data.errors).map(([k, v]) => `${k}: ${v}`).join(', ');
+            errHtml = `<div style="padding:6px 12px;background:var(--bg-tertiary);border-radius:6px;margin-bottom:8px;font-size:11px;color:var(--text-muted);">⚠ Some sources unavailable: ${escapeHtml(errSources)}</div>`;
+        }
+
+        if (!data.results || data.results.length === 0) {
+            results.innerHTML = errHtml + `<div style="text-align:center;padding:20px;color:var(--text-muted)">${(window.i18n?.t('js.noResults') || 'No results found')}</div>`;
+            return;
+        }
+
+        const sourceBadgeColors = { s2: '#7c3aed', arxiv: '#dc2626', crossref: '#0891b2', openalex: '#059669', pubmed_tu: '#d97706' };
+        const sourceLabels = { s2: 'S2', arxiv: 'arXiv', crossref: 'Crossref', openalex: 'OpenAlex', pubmed_tu: 'PubMed' };
+
+        results.innerHTML = errHtml + `<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">${data.total} results from ${data.sources.join(', ')}</div>` + data.results.map(p => {
+            const authors = Array.isArray(p.authors) ? p.authors.join(', ') : (p.authors || '');
+            const paperJson = JSON.stringify(p).replace(/"/g, '&quot;');
+            const srcColor = sourceBadgeColors[p.source] || '#6b7280';
+            const srcLabel = sourceLabels[p.source] || p.source;
+            return `<div style="padding:12px;border-bottom:1px solid var(--border-color);cursor:pointer;" onmouseenter="this.style.background='var(--bg-hover)'" onmouseleave="this.style.background='transparent'">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                    <span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${srcColor};color:#fff;font-weight:600;">${srcLabel}</span>
+                    <span style="font-weight:600;font-size:13px;color:var(--text-primary);flex:1;">${escapeHtml(p.title || 'Untitled')}</span>
+                </div>
+                <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">${escapeHtml(authors || 'Unknown')} &middot; ${p.year || '?'}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">Citations: ${p.citationCount || 0}${p.venue ? ' &middot; ' + escapeHtml(p.venue) : ''}${p.doi ? ' &middot; DOI: ' + escapeHtml(p.doi) : ''}</div>
+                ${p.pdfUrl ? '<span style="font-size:10px;color:var(--accent-green);margin-right:8px;">📄 PDF</span>' : ''}
+                <button class="btn btn-sm btn-primary" onclick='importMultiPaper(${paperJson})'>Import</button>
+                ${p.id ? `<button class="btn btn-sm" onclick='discoverRelated("${escapeHtml(p.id)}","${escapeHtml(p.source)}")' style="margin-left:4px;">🔗 Related</button>` : ''}
+            </div>`;
+        }).join('');
+    } catch (e) {
+        results.innerHTML = `<div style="text-align:center;padding:20px;color:var(--accent-red)">Search failed: ${escapeHtml(e.message)}</div>`;
+    }
+}
+
+// Import from multi-source search result (normalized format)
+async function importMultiPaper(paper) {
+    try {
+        const ref = {
+            title: paper.title || 'Untitled',
+            author: Array.isArray(paper.authors) ? paper.authors.join(' and ') : (paper.authors || ''),
+            year: String(paper.year || ''),
+            journal: paper.venue || '',
+            doi: paper.doi || '',
+            url: paper.pdfUrl || '',
+            abstract: paper.abstract || '',
+            type: 'article',
+            citationKey: '',
+            tags: [],
+            folderIds: selectedFolderId ? [selectedFolderId] : [],
+            searchSource: paper.source,
+            arxivId: paper.arxivId || '',
+            citationCount: paper.citationCount || 0
+        };
+        const res = await fetch(`${API_BASE}/references`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ref)
+        });
+        const saved = await res.json();
+        // Try auto-download PDF if available
+        if (paper.pdfUrl) {
+            try {
+                await fetch(`${API_BASE}/references/${saved.id}/download-pdf`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: paper.pdfUrl })
+                });
+            } catch (e) { console.log('PDF download attempt failed:', e); }
+        }
+        showToast((window.i18n?.t('toast.paperImported') || 'Paper imported!'), 'success');
+        hideSearchPapersModal();
+        loadReferences();
+    } catch (e) {
+        showToast('Import failed: ' + e.message, 'error');
+    }
+}
+
+// Discover related papers via citation graph
+async function discoverRelated(paperId, source) {
+    // Only works with Semantic Scholar paper IDs
+    if (source !== 's2' && source !== 'openalex') {
+        showToast('Citation discovery works best with Semantic Scholar results. Try searching there first.', 'info');
+        return;
+    }
+    const results = document.getElementById('search-results');
+    results.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">Discovering related papers via citation graph...</div>`;
+    try {
+        const res = await fetch(`${API_BASE}/search/citations/${paperId}?direction=both&limit=10`);
+        const data = await res.json();
+        const allPapers = [
+            ...(data.references || []).map(p => ({ ...p, relation: 'referenced' })),
+            ...(data.citations || []).map(p => ({ ...p, relation: 'cited_by' }))
+        ].filter(p => p.title);
+
+        if (allPapers.length === 0) {
+            results.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">No related papers found</div>`;
+            return;
+        }
+
+        const relColors = { referenced: '#0891b2', cited_by: '#7c3aed' };
+        const relLabels = { referenced: '← References', cited_by: '→ Cited by' };
+
+        results.innerHTML = `<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">Found ${data.totalReferences || 0} references and ${data.totalCitations || 0} citations</div>` +
+            allPapers.map(p => {
+                const authors = (p.authors || []).join(', ');
+                const paperJson = JSON.stringify({ ...p, source: 's2' }).replace(/"/g, '&quot;');
+                return `<div style="padding:12px;border-bottom:1px solid var(--border-color);" onmouseenter="this.style.background='var(--bg-hover)'" onmouseleave="this.style.background='transparent'">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                        <span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${relColors[p.relation]};color:#fff;font-weight:600;">${relLabels[p.relation]}</span>
+                        <span style="font-weight:600;font-size:13px;color:var(--text-primary);flex:1;">${escapeHtml(p.title)}</span>
+                    </div>
+                    <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">${escapeHtml(authors || 'Unknown')} &middot; ${p.year || '?'}</div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">Citations: ${p.citationCount || 0}${p.venue ? ' &middot; ' + escapeHtml(p.venue) : ''}</div>
+                    <button class="btn btn-sm btn-primary" onclick='importMultiPaper(${paperJson})'>Import</button>
+                    ${p.id ? `<button class="btn btn-sm" onclick='discoverRelated("${escapeHtml(p.id)}","s2")' style="margin-left:4px;">🔗 Related</button>` : ''}
+                </div>`;
+            }).join('');
+    } catch (e) {
+        results.innerHTML = `<div style="text-align:center;padding:20px;color:var(--accent-red)">Discovery failed: ${escapeHtml(e.message)}</div>`;
+    }
+}
+
+async function lookupDOI() {
+    const doi = document.getElementById('doi-input').value.trim();
+    if (!doi) return;
+    const results = document.getElementById('search-results');
+    results.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">${(window.i18n?.t('js.lookingUpDOI') || 'Looking up DOI...')}</div>`;
+    try {
+        const res = await fetch(`${API_BASE}/doi/lookup?doi=${encodeURIComponent(doi)}`);
+        const data = await res.json();
+        if (data.error) {
+            results.innerHTML = `<div style="text-align:center;padding:20px;color:var(--accent-red)">${escapeHtml(data.error)}</div>`;
+            return;
+        }
+        const dataJson = JSON.stringify(data).replace(/"/g, '&quot;');
+        results.innerHTML = `<div style="padding:12px;">
+            <div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:6px;">${escapeHtml(data.title || 'Untitled')}</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">${escapeHtml(data.authors || '')}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">${escapeHtml(data.journal || '')} &middot; ${data.year || ''}</div>
+            ${data.pdfUrl ? '<div style="font-size:11px;color:var(--accent-green);margin-bottom:8px;">&#128196; Open access PDF available</div>' : ''}
+            <button class="btn btn-primary" onclick='importFromDOI(${dataJson})'>Import to Library</button>
+        </div>`;
+    } catch (e) {
+        results.innerHTML = `<div style="text-align:center;padding:20px;color:var(--accent-red)">Lookup failed: ${escapeHtml(e.message)}</div>`;
+    }
+}
+
+async function importPaper(paper) {
+    try {
+        const ref = {
+            title: paper.title || 'Untitled',
+            author: (paper.authors || []).map(a => a.name).join(' and '),
+            year: String(paper.year || ''),
+            journal: paper.venue || '',
+            doi: paper.externalIds?.DOI || '',
+            url: paper.url || '',
+            abstract: paper.abstract || '',
+            type: 'article',
+            citationKey: '',
+            tags: [],
+            folderIds: selectedFolderId ? [selectedFolderId] : []
+        };
+        const res = await fetch(`${API_BASE}/references`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ref)
+        });
+        const saved = await res.json();
+        if (paper.openAccessPdf?.url || paper.externalIds?.ArXiv) {
+            try {
+                await fetch(`${API_BASE}/references/${saved.id}/download-pdf`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: paper.openAccessPdf?.url, arxivId: paper.externalIds?.ArXiv })
+                });
+            } catch (e) { console.log('PDF download attempt failed:', e); }
+        }
+        showToast((window.i18n?.t('toast.paperImported') || 'Paper imported!'), 'success');
+        hideSearchPapersModal();
+        loadReferences();
+    } catch (e) { showToast((window.i18n?.t('toast.importFailedPrefix') || 'Import failed: ') + e.message, 'error'); }
+}
+
+async function importFromDOI(data) {
+    try {
+        const ref = {
+            title: data.title || '',
+            author: data.authors || '',
+            year: String(data.year || ''),
+            journal: data.journal || '',
+            doi: data.doi || '',
+            url: data.url || '',
+            type: 'article',
+            citationKey: '',
+            tags: [],
+            folderIds: selectedFolderId ? [selectedFolderId] : []
+        };
+        const res = await fetch(`${API_BASE}/references`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ref)
+        });
+        const saved = await res.json();
+        if (data.pdfUrl) {
+            try {
+                await fetch(`${API_BASE}/references/${saved.id}/download-pdf`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: data.pdfUrl })
+                });
+            } catch (e) { console.log('PDF download failed:', e); }
+        }
+        showToast((window.i18n?.t('toast.paperImportedDOI') || 'Paper imported from DOI!'), 'success');
+        hideSearchPapersModal();
+        loadReferences();
+    } catch (e) { showToast((window.i18n?.t('toast.importFailedPrefix') || 'Import failed: ') + e.message, 'error'); }
+}
+
+// ============================================================
+// Translation Popup (Selection Translation)
+// ============================================================
+let selectedText = '';
+
+function setupTranslationPopup() {
+    document.addEventListener('mouseup', (e) => {
+        const popup = document.getElementById('translate-popup');
+        if (popup.contains(e.target)) return;
+        const sel = window.getSelection();
+        const text = sel ? sel.toString().trim() : '';
+        if (text.length > 2 && text.length < 5000) {
+            selectedText = text;
+            const rect = sel.getRangeAt(0).getBoundingClientRect();
+            popup.style.left = Math.min(rect.left, window.innerWidth - 420) + 'px';
+            popup.style.top = (rect.bottom + 8) + 'px';
+            document.getElementById('translate-result').innerHTML = '<span style="color:var(--text-muted);font-size:12px;">Select translation mode...</span>';
+            popup.classList.remove('hidden');
+        }
+    });
+
+    document.addEventListener('mousedown', (e) => {
+        const popup = document.getElementById('translate-popup');
+        if (!popup.contains(e.target)) popup.classList.add('hidden');
+    });
+}
+
+function hideTranslatePopup() {
+    document.getElementById('translate-popup').classList.add('hidden');
+}
+
+async function translateSelection(mode) {
+    if (!selectedText) return;
+    const resultEl = document.getElementById('translate-result');
+    resultEl.innerHTML = `<span style="color:var(--text-muted)">${(window.i18n?.t('js.translating') || 'Translating...')}</span>`;
+
+    try {
+        const res = await fetch(`${API_BASE}/translate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: selectedText, mode, sourceLang: 'en', targetLang: 'zh' })
+        });
+        const data = await res.json();
+        if (data.error) {
+            resultEl.innerHTML = `<span style="color:var(--accent-red)">${escapeHtml(data.error)}</span>`;
+        } else {
+            let html = `<div style="margin-bottom:6px;">${escapeHtml(data.translation)}</div>`;
+            if (data.explanation) {
+                html += `<div style="font-size:11px;color:var(--text-muted);border-top:1px solid var(--border-color);padding-top:6px;margin-top:6px;">${escapeHtml(data.explanation)}</div>`;
+            }
+            resultEl.innerHTML = html;
+        }
+    } catch (e) {
+        resultEl.innerHTML = `<span style="color:var(--accent-red)">${(window.i18n?.t('js.translationFailed') || 'Translation failed')}</span>`;
+    }
+}
+
+// ============================================================
+// Shared Workflow Utilities
+// ============================================================
+function stopWorkflowGeneration() {
+    if (workflowAbortController) {
+        workflowAbortController.abort();
+        workflowAbortController = null;
+    }
+    showToast((window.i18n?.t('toast.generationStopped') || 'Generation stopped'), 'info');
+}
+
+// ============================================================
+// Enhanced PDF Viewer Functions
+// ============================================================
+function showFullTranslation(refId) {
+    const panel = document.getElementById('pdf-translation-panel');
+    if (panel) panel.style.display = 'flex';
+}
+
+function hideFullTranslation() {
+    const panel = document.getElementById('pdf-translation-panel');
+    if (panel) panel.style.display = 'none';
+}
+
+function toggleTranslationView() {
+    const panel = document.getElementById('pdf-translation-panel');
+    if (!panel) return;
+    panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+}
+
+async function tryAutoDownloadPdf(refId) {
+    const ref = allReferences.find(r => r.id === refId);
+    if (!ref || ref.pdfFile) return;
+    // Now supports title-based DOI lookup, so DOI/URL not strictly required
+    const msg = ref.doi || ref.url
+        ? (window.i18n?.t('toast.attemptingPDF') || 'Attempting to find PDF...')
+        : (window.i18n?.t('toast.searchingByTitle') || 'Searching for PDF by title...');
+    showToast(msg, 'info');
+    try {
+        const res = await fetch(`${API_BASE}/references/${refId}/auto-pdf`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast((window.i18n?.t('toast.pdfDownloaded') || 'PDF downloaded successfully!'), 'success');
+            await loadReferences();
+            renderDetail();
+        } else {
+            showToast(data.message || (window.i18n?.t('toast.couldNotFindPDF') || 'Could not find PDF'), 'info');
+        }
+    } catch (e) {
+        showToast((window.i18n?.t('toast.autoDownloadFailed') || 'Auto-download failed: ') + e.message, 'error');
+    }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+# Local projects (only CHI26_Poster is tracked as example)
+projects/*
+!projects/CHI26_Poster/
+
+# LaTeX output files
+*.pdf
+*.aux
+*.log
+*.out
+*.synctex*
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+
+# Output directory
+output/
+
+# Node modules
+node_modules/
+
+# Claude Code
+.claude/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+server.log
+
+# Release files
+release.zip
