@@ -385,6 +385,50 @@
         let deadlines = [];
         let fullAssignments = [];
 
+        // Canvas / ICS 里的标题、课程名、描述都是外部数据，拼进 innerHTML 前必须转义
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        // 只允许 http(s) 链接，挡掉 javascript: 之类
+        function safeHttpUrl(value) {
+            try {
+                const u = new URL(String(value || ''), window.location.href);
+                return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : '';
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function setLink(container, url, label) {
+            container.textContent = '';
+            const href = safeHttpUrl(url);
+            if (!href) return;
+            const a = document.createElement('a');
+            a.href = href;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.style.color = 'var(--accent-color)';
+            a.style.textDecoration = 'none';
+            a.textContent = label;
+            container.appendChild(a);
+        }
+
+        // 作业描述是 Canvas 的 HTML，放进不允许脚本的沙箱 iframe，保留格式但不执行任何脚本
+        function renderSandboxedHtml(container, html) {
+            const styles = getComputedStyle(document.body);
+            const doc = `<!doctype html><html><head><meta charset="utf-8"><base target="_blank">
+<style>body{margin:0;font:14px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:${styles.color};background:transparent;word-wrap:break-word}img{max-width:100%;height:auto}a{color:inherit}table{border-collapse:collapse;max-width:100%}</style>
+</head><body>${html}</body></html>`;
+            const frame = document.createElement('iframe');
+            frame.setAttribute('sandbox', 'allow-popups allow-popups-to-escape-sandbox');
+            frame.setAttribute('referrerpolicy', 'no-referrer');
+            frame.style.cssText = 'width:100%;min-height:320px;height:50vh;border:0;background:transparent;';
+            frame.srcdoc = doc;
+            container.textContent = '';
+            container.appendChild(frame);
+        }
+
         async function init() {
             await loadData();
             renderCalendar();
@@ -502,18 +546,22 @@
                 return;
             }
 
-            list.innerHTML = upcoming.map(d => {
+            list.innerHTML = upcoming.map((d, i) => {
                 const due = new Date(d.due);
                 return `
-                    <div class="list-item" onclick="openDetailProxy('${d.uid}')">
-                        <div class="item-title">${d.title}</div>
+                    <div class="list-item" data-index="${i}">
+                        <div class="item-title">${escapeHtml(d.title)}</div>
                         <div class="item-meta">
-                            <span>${d.course}</span>
-                            <span>${due.toLocaleDateString()}</span>
+                            <span>${escapeHtml(d.course)}</span>
+                            <span>${escapeHtml(due.toLocaleDateString())}</span>
                         </div>
                     </div>
                 `;
             }).join('');
+            // 不再把 uid 拼进 onclick 属性（uid 里带引号就能注入脚本）
+            list.querySelectorAll('.list-item[data-index]').forEach(item => {
+                item.addEventListener('click', () => openDetail(upcoming[Number(item.dataset.index)]));
+            });
         }
 
         // --- Navigation ---
@@ -550,12 +598,16 @@
             const files = document.getElementById('modalFiles');
 
             if (match) {
-                body.innerHTML = match.description || 'No description available.';
+                if (match.description) {
+                    renderSandboxedHtml(body, match.description);
+                } else {
+                    body.innerText = 'No description available.';
+                }
                 // Links/Files (heuristic finding links in description or if API provided attachments)
-                files.innerHTML = `<a href="${match.html_url}" target="_blank" style="color:var(--accent-color); text-decoration:none;">🔗 Open in Canvas</a>`;
+                setLink(files, match.html_url, '🔗 Open in Canvas');
             } else {
                 body.innerText = ev.description || 'No details available (Scraper sync needed).';
-                files.innerHTML = ev.url ? `<a href="${ev.url}" target="_blank" style="color:var(--accent-color); text-decoration:none;">🔗 Link</a>` : '';
+                setLink(files, ev.url, '🔗 Link');
             }
 
             modal.style.display = 'flex';
