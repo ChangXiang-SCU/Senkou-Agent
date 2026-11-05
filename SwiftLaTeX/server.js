@@ -2,10 +2,12 @@ const express = require('express');
 const ical = require('node-ical');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 const pdfParse = require('pdf-parse');
 const chokidar = require('chokidar');
 const multer = require('multer');
+const { isInside, resolveInside } = require('./lib/paths');
+const { git, isCommitHash, isSafeRemoteUrl, withToken } = require('./lib/git');
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -24,8 +26,11 @@ const LIBRARY_COLLECTIONS = path.join(LIBRARY_DIR, 'collections.json');
 });
 
 // Per-project library data directories
+const PROJECT_DATA_DIR = path.resolve(__dirname, 'data', 'projects');
 function getProjectLibraryDir(projectId) {
-    const dir = path.resolve(__dirname, 'data', 'projects', projectId, 'library');
+    // projectId 来自 URL，不校验的话 "../../x" 能在 data/projects 之外建目录写文件
+    const dir = resolveInside(PROJECT_DATA_DIR, [String(projectId), 'library']);
+    if (!dir) throw new Error('Invalid project ID');
     const pdfsDir = path.join(dir, 'pdfs');
     const notesDir = path.join(dir, 'notes');
     [dir, pdfsDir, notesDir].forEach(d => {
@@ -74,6 +79,8 @@ let sseClients = [];
 const PROJECTS_PARENT = path.resolve(__dirname, '..', 'projects');
 const PROJECTS_LOCAL = path.resolve(__dirname, 'projects');
 const PROJECTS_BASE = fs.existsSync(PROJECTS_PARENT) ? PROJECTS_PARENT : PROJECTS_LOCAL;
+// 新 clone 下来没有 projects/，每次扫描都会刷 ENOENT
+if (!fs.existsSync(PROJECTS_BASE)) fs.mkdirSync(PROJECTS_BASE, { recursive: true });
 
 // LaTeX engine paths — auto-detect from PATH, fallback to explicit paths
 function findExecutable(name, fallback) {
@@ -680,7 +687,11 @@ function getTextProjects() {
 // Decode project ID to path
 function getProjectPath(projectId) {
     try {
-        return Buffer.from(projectId, 'base64').toString('utf8');
+        const decoded = Buffer.from(String(projectId), 'base64').toString('utf8');
+        if (!decoded || decoded.includes('\0')) return null;
+        const resolved = path.resolve(decoded);
+        // 只认 projects 目录里的路径。原来任何 base64 编码的绝对路径都能用，整块硬盘都能读写
+        return isInside(PROJECTS_BASE, resolved) ? resolved : null;
     } catch {
         return null;
     }
@@ -747,7 +758,7 @@ app.get('/api/filetree/:projectId', (req, res) => {
     const subPath = req.query.subPath;
     const targetPath = subPath ? path.join(projectPath, subPath) : projectPath;
     // Security: ensure targetPath is within projectPath
-    if (!path.resolve(targetPath).startsWith(path.resolve(projectPath))) {
+    if (!isInside(projectPath, targetPath)) {
         return res.status(403).json({ error: 'Forbidden path traversal' });
     }
     if (!fs.existsSync(targetPath)) {
@@ -855,7 +866,7 @@ app.get('/api/file/:projectId', (req, res) => {
     try {
         // Prevent path traversal
         const resolvedPath = path.resolve(projectPath, filePath);
-        if (!resolvedPath.startsWith(path.resolve(projectPath))) {
+        if (!isInside(projectPath, resolvedPath)) {
             return res.status(403).send('Forbidden directory traversal');
         }
         if (!fs.existsSync(resolvedPath)) {
@@ -881,7 +892,7 @@ app.put('/api/file/:projectId', express.json({ limit: '10mb' }), (req, res) => {
     try {
         // Prevent path traversal
         const resolvedPath = path.resolve(projectPath, filePath);
-        if (!resolvedPath.startsWith(path.resolve(projectPath))) {
+        if (!isInside(projectPath, resolvedPath)) {
             return res.status(403).json({ error: 'Forbidden directory traversal' });
         }
 
@@ -908,7 +919,7 @@ app.get('/api/file-info/:projectId', (req, res) => {
 
     try {
         const resolvedPath = path.resolve(projectPath, filePath);
-        if (!resolvedPath.startsWith(path.resolve(projectPath))) {
+        if (!isInside(projectPath, resolvedPath)) {
             return res.status(403).json({ error: 'Forbidden directory traversal' });
         }
         if (!fs.existsSync(resolvedPath)) {
@@ -1250,7 +1261,7 @@ app.get('/api/pdf/:projectId', (req, res) => {
     const targetPath = subPath ? path.join(projectPath, subPath) : projectPath;
 
     // Security: ensure targetPath is within projectPath
-    if (!path.resolve(targetPath).startsWith(path.resolve(projectPath))) {
+    if (!isInside(projectPath, targetPath)) {
         return res.status(403).send('Forbidden path traversal');
     }
 
@@ -1283,7 +1294,7 @@ app.post('/api/compile/:projectId', (req, res) => {
     const compilePath = subProjectPath ? path.join(projectPath, subProjectPath) : projectPath;
 
     // Security: ensure compilePath is within projectPath
-    if (!path.resolve(compilePath).startsWith(path.resolve(projectPath))) {
+    if (!isInside(projectPath, compilePath)) {
         return res.status(403).json({ success: false, error: 'Forbidden path traversal' });
     }
 
@@ -1308,8 +1319,9 @@ app.post('/api/compile/:projectId', (req, res) => {
         const useXeLatex = needsXeLatex(compilePath);
         const latexEngine = useXeLatex ? XELATEX : PDFLATEX;
         console.log(`Using ${useXeLatex ? 'XeLaTeX' : 'pdfLaTeX'} engine`);
-        const pdflatexCmd = `"${latexEngine}" -interaction=nonstopmode -output-directory="${compilePath}" "${texFile}"`;
-        const bibtexCmd = `"${BIBTEX}" ${baseName}`;
+        // 参数数组直接传给编译器，不经过 shell：文件名里有空格、$、引号都不会出问题
+        const pdflatexArgs = ['-interaction=nonstopmode', `-output-directory=${compilePath}`, texFile];
+        const bibtexArgs = [baseName];
 
         let output = '';
         let bibtexOutput = '';
@@ -1317,7 +1329,7 @@ app.post('/api/compile/:projectId', (req, res) => {
         // First pdflatex pass
         console.log('Running pdflatex (pass 1)...');
         try {
-            output += execSync(pdflatexCmd, execOptions);
+            output += execFileSync(latexEngine, pdflatexArgs, execOptions);
         } catch (execError) {
             output += execError.stdout || execError.stderr || execError.message;
         }
@@ -1331,7 +1343,7 @@ app.post('/api/compile/:projectId', (req, res) => {
         if (bibFiles.length > 0) {
             console.log('Running bibtex...');
             try {
-                bibtexOutput = execSync(bibtexCmd, execOptions);
+                bibtexOutput = execFileSync(BIBTEX, bibtexArgs, execOptions);
                 output += '\n\n=== BIBTEX OUTPUT ===\n' + bibtexOutput;
             } catch (execError) {
                 bibtexOutput = execError.stdout || execError.stderr || execError.message;
@@ -1342,7 +1354,7 @@ app.post('/api/compile/:projectId', (req, res) => {
             console.log('Running pdflatex (pass 2)...');
             try {
                 output += '\n\n=== PDFLATEX PASS 2 ===\n';
-                output += execSync(pdflatexCmd, execOptions);
+                output += execFileSync(latexEngine, pdflatexArgs, execOptions);
             } catch (execError) {
                 output += execError.stdout || execError.stderr || execError.message;
             }
@@ -1351,7 +1363,7 @@ app.post('/api/compile/:projectId', (req, res) => {
             console.log('Running pdflatex (pass 3)...');
             try {
                 output += '\n\n=== PDFLATEX PASS 3 ===\n';
-                output += execSync(pdflatexCmd, execOptions);
+                output += execFileSync(latexEngine, pdflatexArgs, execOptions);
             } catch (execError) {
                 output += execError.stdout || execError.stderr || execError.message;
             }
@@ -1457,18 +1469,18 @@ async function autoCompile(projectPath) {
         const useXeLatex = needsXeLatex(projectPath);
         const latexEngine = useXeLatex ? XELATEX : PDFLATEX;
         console.log(`[Auto-compile] Using ${useXeLatex ? 'XeLaTeX' : 'pdfLaTeX'} engine`);
-        const pdflatexCmd = `"${latexEngine}" -interaction=nonstopmode -output-directory="${projectPath}" "${texFile}"`;
-        const bibtexCmd = `"${BIBTEX}" ${baseName}`;
+        const pdflatexArgs = ['-interaction=nonstopmode', `-output-directory=${projectPath}`, texFile];
+        const bibtexArgs = [baseName];
 
         // First pdflatex pass
-        try { execSync(pdflatexCmd, execOptions); } catch (e) { }
+        try { execFileSync(latexEngine, pdflatexArgs, execOptions); } catch (e) { }
 
         // Check for .bib files and run bibtex
         const bibFiles = fs.readdirSync(projectPath).filter(f => f.endsWith('.bib'));
         if (bibFiles.length > 0) {
-            try { execSync(bibtexCmd, execOptions); } catch (e) { }
-            try { execSync(pdflatexCmd, execOptions); } catch (e) { }
-            try { execSync(pdflatexCmd, execOptions); } catch (e) { }
+            try { execFileSync(BIBTEX, bibtexArgs, execOptions); } catch (e) { }
+            try { execFileSync(latexEngine, pdflatexArgs, execOptions); } catch (e) { }
+            try { execFileSync(latexEngine, pdflatexArgs, execOptions); } catch (e) { }
         }
 
         const pdfPath = path.join(projectPath, `${baseName}.pdf`);
@@ -1628,27 +1640,26 @@ app.post('/api/git/push/:projectId', (req, res) => {
         const execOpts = { encoding: 'utf8', cwd: projectPath, timeout: 60000 };
 
         // Stage all changes
-        execSync('git add -A', execOpts);
+        git(['add', '-A'], execOpts);
 
         // Check if there's anything to commit
-        const status = execSync('git status --porcelain', execOpts).trim();
+        const status = git(['status', '--porcelain'], execOpts).trim();
         if (!status) {
             return res.json({ success: true, message: 'Nothing to commit, working tree clean' });
         }
 
-        // Commit
-        execSync(`git commit -m "${commitMsg.replace(/"/g, '\\"')}"`, execOpts);
+        // Commit（参数数组，不经过 shell）
+        git(['commit', '-m', String(commitMsg)], execOpts);
 
         // Push (with token auth if provided)
         let pushOutput = '';
         try {
             if (token) {
                 // Temporarily set credential for push
-                const remote = execSync('git remote get-url origin', execOpts).trim();
-                const authRemote = remote.replace('https://', `https://${token}@`);
-                pushOutput = execSync(`git push ${authRemote}`, { ...execOpts, timeout: 60000 });
+                const remote = git(['remote', 'get-url', 'origin'], execOpts).trim();
+                pushOutput = git(['push', withToken(remote, token)], { ...execOpts, timeout: 60000 });
             } else {
-                pushOutput = execSync('git push', { ...execOpts, timeout: 60000 });
+                pushOutput = git(['push'], { ...execOpts, timeout: 60000 });
             }
         } catch (pushErr) {
             return res.json({
@@ -1678,11 +1689,10 @@ app.post('/api/git/pull/:projectId', (req, res) => {
         let output = '';
 
         if (token) {
-            const remote = execSync('git remote get-url origin', execOpts).trim();
-            const authRemote = remote.replace('https://', `https://${token}@`);
-            output = execSync(`git pull ${authRemote}`, execOpts);
+            const remote = git(['remote', 'get-url', 'origin'], execOpts).trim();
+            output = git(['pull', withToken(remote, token)], execOpts);
         } else {
-            output = execSync('git pull', execOpts);
+            output = git(['pull'], execOpts);
         }
 
         res.json({ success: true, output: output.toString() });
@@ -1717,9 +1727,11 @@ app.get('/api/git/diff/:projectId/:commitHash', (req, res) => {
     const projectPath = getProjectPath(req.params.projectId);
     if (!projectPath) return res.status(400).json({ error: 'Invalid project ID' });
 
+    if (!isCommitHash(req.params.commitHash)) return res.status(400).json({ error: 'Invalid commit hash' });
+
     try {
         const execOpts = { encoding: 'utf8', cwd: projectPath, timeout: 15000 };
-        const diff = execSync(`git show ${req.params.commitHash} --stat --patch`, execOpts);
+        const diff = git(['show', req.params.commitHash, '--stat', '--patch'], execOpts);
         res.json({ diff });
     } catch (err) {
         res.status(500).json({ error: 'Git diff failed', details: err.message });
@@ -1739,16 +1751,16 @@ app.post('/api/git/resolve/:projectId', (req, res) => {
 
         if (strategy === 'ours') {
             // Keep local version
-            execSync(`git checkout --ours "${file}"`, execOpts);
+            git(['checkout', '--ours', '--', String(file)], execOpts);
         } else if (strategy === 'theirs') {
             // Keep remote version
-            execSync(`git checkout --theirs "${file}"`, execOpts);
+            git(['checkout', '--theirs', '--', String(file)], execOpts);
         } else {
             return res.status(400).json({ error: 'Invalid strategy' });
         }
 
         // Stage the resolved file
-        execSync(`git add "${file}"`, execOpts);
+        git(['add', '--', String(file)], execOpts);
 
         res.json({ success: true, message: `Resolved ${file} using ${strategy}` });
     } catch (err) {
@@ -1768,6 +1780,7 @@ app.post('/api/overleaf/link/:projectId', (req, res) => {
 
     const { overleafUrl } = req.body;
     if (!overleafUrl) return res.status(400).json({ error: 'Missing Overleaf Git URL' });
+    if (!isSafeRemoteUrl(overleafUrl)) return res.status(400).json({ error: 'Overleaf Git URL must start with https://' });
 
     try {
         const execOpts = { encoding: 'utf8', cwd: projectPath, timeout: 15000 };
@@ -1776,10 +1789,10 @@ app.post('/api/overleaf/link/:projectId', (req, res) => {
         try {
             execSync('git remote get-url overleaf', execOpts);
             // Update existing
-            execSync(`git remote set-url overleaf "${overleafUrl}"`, execOpts);
+            git(['remote', 'set-url', 'overleaf', overleafUrl], execOpts);
         } catch (e) {
             // Add new remote
-            execSync(`git remote add overleaf "${overleafUrl}"`, execOpts);
+            git(['remote', 'add', 'overleaf', overleafUrl], execOpts);
         }
 
         res.json({ success: true, message: 'Overleaf remote linked' });
@@ -1802,7 +1815,7 @@ app.post('/api/overleaf/sync/:projectId', (req, res) => {
             execSync('git add -A', execOpts);
             try {
                 const commitMsg = message || `Sync from Claude LaTeX (${new Date().toLocaleString()})`;
-                execSync(`git commit -m "${commitMsg.replace(/"/g, '\\"')}"`, execOpts);
+                git(['commit', '-m', String(commitMsg)], execOpts);
             } catch (e) { /* nothing to commit */ }
             const output = execSync('git push overleaf master --force', execOpts);
             res.json({ success: true, output: output.toString() });
@@ -1821,6 +1834,9 @@ app.post('/api/overleaf/clone', (req, res) => {
     if (!overleafUrl || !token) {
         return res.status(400).json({ error: 'Missing Overleaf URL or token' });
     }
+    if (!isSafeRemoteUrl(overleafUrl)) {
+        return res.status(400).json({ error: 'Overleaf URL must start with https://' });
+    }
 
     // Extract project ID from URL for default name
     const projectId = overleafUrl.split('/').pop();
@@ -1837,7 +1853,7 @@ app.post('/api/overleaf/clone', (req, res) => {
     console.log(`Cloning from Overleaf to ${targetPath}...`);
 
     try {
-        execSync(`git clone "${authUrl}" "${targetPath}"`, {
+        git(['clone', '--', authUrl, targetPath], {
             stdio: 'pipe',
             timeout: 120000,
             encoding: 'utf8'
@@ -1895,6 +1911,9 @@ app.post('/api/github/clone', (req, res) => {
     if (!token || !repoUrl || !repoName) {
         return res.status(400).json({ error: 'Missing parameters' });
     }
+    if (!isSafeRemoteUrl(repoUrl)) {
+        return res.status(400).json({ error: 'Repository URL must start with https://' });
+    }
 
     // Sanitize repo name to avoid path traversal
     const safeName = repoName.replace(/[^a-zA-Z0-9-_]/g, '');
@@ -1910,7 +1929,7 @@ app.post('/api/github/clone', (req, res) => {
     console.log(`Cloning ${repoName} to ${targetPath}...`);
 
     try {
-        execSync(`git clone "${authRepoUrl}" "${targetPath}"`, {
+        git(['clone', '--', authRepoUrl, targetPath], {
             stdio: 'inherit',
             timeout: 60000 // 60s timeout
         });
@@ -1983,7 +2002,7 @@ app.post('/api/github/export/:projectId', async (req, res) => {
 
         // 4. Add remote, stage, commit, push
         try { execSync('git remote remove origin', execOpts); } catch (e) { }
-        execSync(`git remote add origin ${authRemote}`, execOpts);
+        git(['remote', 'add', 'origin', authRemote], execOpts);
         execSync('git add -A', execOpts);
         try {
             execSync(`git commit -m "Initial commit from Claude LaTeX"`, execOpts);
@@ -2234,7 +2253,7 @@ function executeAiTool(toolName, toolInput, projectPath) {
     try {
         if (toolName === 'read_file') {
             const filePath = path.resolve(projectPath, toolInput.file_path);
-            if (!filePath.startsWith(path.resolve(projectPath))) {
+            if (!isInside(projectPath, filePath)) {
                 return { error: 'Access denied: path outside project' };
             }
             if (!fs.existsSync(filePath)) {
@@ -2250,7 +2269,7 @@ function executeAiTool(toolName, toolInput, projectPath) {
 
         if (toolName === 'edit_file') {
             const filePath = path.resolve(projectPath, toolInput.file_path);
-            if (!filePath.startsWith(path.resolve(projectPath))) {
+            if (!isInside(projectPath, filePath)) {
                 return { error: 'Access denied: path outside project' };
             }
 
@@ -2281,7 +2300,7 @@ function executeAiTool(toolName, toolInput, projectPath) {
 
         if (toolName === 'list_files') {
             const dir = toolInput.directory ? path.resolve(projectPath, toolInput.directory) : projectPath;
-            if (!dir.startsWith(path.resolve(projectPath))) {
+            if (!isInside(projectPath, dir)) {
                 return { error: 'Access denied: path outside project' };
             }
             if (!fs.existsSync(dir)) {
@@ -2376,11 +2395,12 @@ const AI_PROVIDERS = {
         configKey: 'gemini_api_key',
         isAvailable: () => {
             const config = getConfig();
-            return !!(config.gemini_api_key || config.google_oauth?.access_token);
+            return !!(config.gemini_api_key || config.google_ai_api_key || config.google_oauth?.access_token);
         },
         getApiKey: () => {
             const config = getConfig();
-            return config.google_oauth?.access_token || config.gemini_api_key;
+            // 旧版 config.example.json / README 写的是 google_ai_api_key，兼容一下
+            return config.google_oauth?.access_token || config.gemini_api_key || config.google_ai_api_key;
         },
         getAuthType: () => {
             const config = getConfig();
@@ -3745,7 +3765,7 @@ app.post('/api/ai/save', (req, res) => {
 
         // Resolve and validate path
         const filePath = path.resolve(projectPath, filename);
-        if (!filePath.startsWith(path.resolve(projectPath))) {
+        if (!isInside(projectPath, filePath)) {
             return res.status(403).json({ error: 'Forbidden directory traversal' });
         }
 
@@ -5406,7 +5426,7 @@ app.post('/api/library/references/:id/pdf', pdfUpload.single('pdf'), (req, res) 
 // Serve library PDF
 app.get('/api/library/pdf/:filename', (req, res) => {
     const filePath = path.join(LIBRARY_PDFS, req.params.filename);
-    if (!path.resolve(filePath).startsWith(path.resolve(LIBRARY_PDFS))) {
+    if (!isInside(LIBRARY_PDFS, filePath)) {
         return res.status(403).json({ error: 'Forbidden' });
     }
     if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'PDF not found' });
