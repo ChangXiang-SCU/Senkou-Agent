@@ -3,7 +3,7 @@
 > A locally-hosted LaTeX IDE with multi-provider AI assistant, real-time compilation, GitHub/Overleaf sync, Canvas integration, and collaborative features. Built to rival Overleaf — but runs on your own machine.
 
 ![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
-![Node](https://img.shields.io/badge/node-%3E%3D18-green)
+![Node](https://img.shields.io/badge/node-%3E%3D20.19-green)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 
 ---
@@ -17,7 +17,7 @@
 | **Multi AI Assistant** | Claude, GPT-4o, Gemini, OpenRouter — reads/edits project files, fixes errors, polishes writing |
 | **GitHub Sync** | Clone repos, push projects, full git status/push/pull/log/diff/conflict resolution |
 | **Overleaf Sync** | Link, push, pull, clone Overleaf projects via Git |
-| **Canvas Integration** | Scrape Cornell Canvas assignments, import deadlines, calendar view |
+| **Canvas Integration** | Scrape assignments from any school's Canvas (URL is configurable), import deadlines, calendar view |
 | **Comments** | Overleaf-style inline comments anchored to specific lines |
 | **TODO Management** | Per-project task tracking with categories, priorities, status |
 | **Project Compare** | Git diff between projects with color-coded additions/deletions |
@@ -48,6 +48,8 @@
 - [Daily Usage](#daily-usage)
 - [Getting Updates](#getting-updates)
 - [Project Structure](#project-structure)
+- [Security Notes](#security-notes)
+- [Running Tests](#running-tests)
 - [FAQ](#faq)
 - [Tech Stack](#tech-stack)
 
@@ -61,7 +63,7 @@ Node.js is the runtime for the backend server.
 
 **Windows:**
 1. Go to https://nodejs.org/
-2. Download **LTS** (v18 or higher recommended)
+2. Download **LTS** (v20.19 or newer; v22 LTS recommended — `chokidar` 5 and `express` 5 do not run on v18)
 3. Run installer, click "Next" through all steps
 4. Verify in Command Prompt (`Win+R` → `cmd`):
    ```
@@ -129,9 +131,13 @@ sudo apt-get install git
 ```bash
 git clone https://github.com/ChangXiang-SCU/Senkou-Agent.git
 cd Senkou-Agent
+mkdir projects
+cd SwiftLaTeX
 ```
 
 > **No Git?** Click the green "Code" button on GitHub → "Download ZIP", then extract.
+
+The app lives in the `SwiftLaTeX/` subfolder — run every `npm` / `node` command from there. Your papers go in `Senkou-Agent/projects/` (one folder per project). The server uses `../projects` when it exists and falls back to `SwiftLaTeX/projects/` otherwise.
 
 ### Step 2: Install Dependencies
 
@@ -139,7 +145,13 @@ cd Senkou-Agent
 npm install
 ```
 
-This downloads all required Node.js packages (express, chokidar, pdf-parse, node-ical, etc.). Takes about 1-2 minutes.
+This downloads all required Node.js packages (express, chokidar, pdf-parse, node-ical, playwright, etc.). Takes about 1-2 minutes.
+
+The Canvas scraper also needs a Playwright browser. If it reports a missing browser, run this once:
+
+```bash
+npx playwright install chromium
+```
 
 ### Step 3: Create Config File
 
@@ -153,23 +165,39 @@ copy config.example.json config.json
 cp config.example.json config.json
 ```
 
-Then edit `config.json` to add your API keys (see [AI Assistant Configuration](#ai-assistant-configuration)).
+Then edit `config.json` to add your API keys (see [AI Assistant Configuration](#ai-assistant-configuration)). Every field is optional; leave unused ones as `""`.
+
+| Field | Used for |
+|-------|----------|
+| `anthropic_api_key`, `openai_api_key`, `gemini_api_key`, `openrouter_api_key` | AI assistant providers |
+| `github_token` | GitHub clone / push / export |
+| `overleaf_token` | Overleaf Git sync |
+| `canvas_base_url` | Your school's Canvas address, e.g. `https://canvas.your-school.edu` (see [Canvas Integration](#6-canvas-integration)) |
+| `canvas_ics_url` | Canvas calendar feed for deadlines |
+| `google_oauth_*`, `openai_oauth_*` | Optional OAuth login instead of API keys |
+
+> `config.json` holds secrets. It is in `.gitignore`; never commit it, and never paste it into issues or chats.
 
 ### Step 4: Start the Server
 
 ```bash
-node server.js
+npm start
 ```
 
-You should see:
+`npm start` runs `node -r ./lib/harden.js server.js`. The extra preload keeps the server on `127.0.0.1`, blocks other websites from calling the local API, and refuses to serve `config.json`, `scrapers/` and `data/` as static files. Plain `node server.js` still works but skips these protections (see [Security Notes](#security-notes)).
+
+You should see something like:
 ```
-+------------------------------------------------------------+
-|  LaTeX Compiler Server (Multi-Project)                      |
-|  URL: http://localhost:3000/compile.html                    |
-|  Projects found: 1                                          |
-|  Auto-compile: ENABLED                                      |
-+------------------------------------------------------------+
+╔════════════════════════════════════════════════════════════╗
+║  Senkou Agent - LaTeX & Research Platform                  ║
+║  URL: http://localhost:3000/compile.html                  ║
+║  Projects found: 0                                        ║
+║  Auto-compile: ENABLED                                     ║
+║  ToolUniverse: OFFLINE (start with: tooluniverse-http-api)║
+╚════════════════════════════════════════════════════════════╝
 ```
+
+ToolUniverse is an optional scientific-tool server; OFFLINE is normal if you don't use it.
 
 ### Step 5: Open in Browser
 
@@ -177,7 +205,7 @@ You should see:
 http://localhost:3000/compile.html
 ```
 
-The repo includes an example project (`projects/example-hello-world/`) with Chinese/English text, math formulas, code blocks, tables, and bibliography references — ready to compile immediately.
+If `projects/` is empty, create a project from the dashboard or drop any folder that contains a `.tex` file into `projects/`.
 
 ---
 
@@ -185,7 +213,7 @@ The repo includes an example project (`projects/example-hello-world/`) with Chin
 
 After installation, you can:
 
-1. **Compile the example project** — Select `example-hello-world` from the project dropdown, the PDF preview appears on the right
+1. **Compile a project** — Select it from the project dropdown, the PDF preview appears on the right
 2. **Edit a file** — Click any `.tex` or `.bib` file in the file tree, edit in the CodeMirror editor, press `Ctrl+S` to save
 3. **Try the AI assistant** — Open the AI panel (right side), ask it to explain a LaTeX command or fix an error
 4. **Add your own project** — Drop a folder with `.tex` files into the `projects/` directory, refresh the page
@@ -332,12 +360,14 @@ Bidirectional sync with Overleaf projects via Git.
 
 ### 6. Canvas Integration
 
-Import assignments and deadlines from Cornell Canvas LMS.
+Import assignments and deadlines from any Canvas LMS instance (Cornell, HKUST(GZ), or any other school).
 
 **Canvas Scraper:**
-- Spawns a background Playwright-based scraper (`scrapers/canvas_scraper.js`)
-- Scrapes Canvas assignments, downloads attached files
-- Creates organized project folders for each assignment
+- Spawns a Playwright-based scraper (`scrapers/canvas_scraper.js`) that opens a visible browser window; you log in yourself (school SSO / 2FA), and the scraper reuses that session to read your own courses through the Canvas API. No personal access token is needed.
+- Picks current-semester courses by the term start/end dates Canvas returns, so non-English term names such as `2026-27 秋季学期` work
+- Downloads files attached to assignments (Chinese file names are kept) and creates a project folder per assignment
+- Links to other websites are listed in `external_links.md` instead of being downloaded with your Canvas session
+- The login session is saved to `scrapers/session.json` — treat it like a password; delete it to log out
 
 **Canvas Calendar (ICS):**
 - Import deadlines via Canvas ICS calendar URL
@@ -353,13 +383,18 @@ Import assignments and deadlines from Cornell Canvas LMS.
 - Light/dark theme support
 
 **Setup:**
-1. In Canvas, go to Calendar → Calendar Feed → copy the ICS URL
-2. Add to `config.json`:
+1. Set your school's Canvas address in `config.json`:
 ```json
 {
-  "canvas_ics_url": "https://canvas.cornell.edu/feeds/calendars/user_xxxxxxx.ics"
+  "canvas_base_url": "https://canvas.your-school.edu",
+  "canvas_ics_url": "https://canvas.your-school.edu/feeds/calendars/user_xxxxxxx.ics"
 }
 ```
+2. For deadlines, in Canvas go to Calendar → Calendar Feed and copy the ICS URL into `canvas_ics_url`. The feed URL contains a private token, so keep it out of git.
+
+The scraper picks the Canvas address in this order: `CANVAS_BASE_URL` environment variable → `canvas_base_url` → the address of `canvas_ics_url`. If none is set it stops with an error instead of guessing a school.
+
+Optional: once a session is saved, `CANVAS_HEADLESS=1 node scrapers/canvas_scraper.js` runs without opening a window.
 
 **Access:** Open `http://localhost:3000/calendar.html` for the calendar view.
 
@@ -476,7 +511,7 @@ Edit `config.json` and add your API key:
 |----------|-------------|---------|-------------------|
 | OpenAI | `openai_api_key` | https://platform.openai.com/api-keys | gpt-4o |
 | Anthropic (Claude) | `anthropic_api_key` | https://console.anthropic.com/ | claude-sonnet-4-20250514 |
-| Google (Gemini) | `google_ai_api_key` | https://aistudio.google.com/apikey | gemini-2.5-flash |
+| Google (Gemini) | `gemini_api_key` | https://aistudio.google.com/apikey | gemini-2.5-flash |
 | OpenRouter | `openrouter_api_key` | https://openrouter.ai/keys | Any model |
 
 **Example — using Claude only:**
@@ -516,8 +551,8 @@ The AI assistant is entirely optional. Without any API key configured, all core 
 ### Starting
 
 ```bash
-cd Senkou-Agent
-node server.js
+cd Senkou-Agent/SwiftLaTeX
+npm start
 ```
 
 Then open `http://localhost:3000/compile.html` in your browser.
@@ -540,10 +575,6 @@ Drop your LaTeX project folder into `projects/`, then refresh the browser. Each 
 
 ```
 projects/
-+-- example-hello-world/   <-- included example
-|   +-- main.tex
-|   +-- references.bib
-|   +-- paper_todo.json
 +-- my-thesis/
 |   +-- main.tex
 |   +-- chapters/
@@ -573,6 +604,7 @@ When new features are released, update with:
 ```bash
 cd Senkou-Agent
 git pull
+cd SwiftLaTeX
 npm install
 ```
 
@@ -592,21 +624,45 @@ npm install
 
 ```
 Senkou-Agent/
-+-- compile.html          # Main page (editor + PDF preview)
-+-- server.js             # Backend server (Express)
-+-- config.json           # Your config file (not tracked by git)
-+-- config.example.json   # Config template
-+-- package.json          # Node.js dependencies
-+-- dashboard.html        # Project dashboard page
-+-- calendar.html         # Canvas calendar page
-+-- index.html            # Landing page
-+-- assets/               # Static assets (fonts, images)
-+-- css/                  # Stylesheets
-+-- engines/              # LaTeX WebAssembly engines
-+-- examples/             # Example paper PDFs
-+-- projects/             # Your LaTeX projects (not tracked by git)
-+-- scrapers/             # Canvas scraper scripts
++-- projects/                 # Your LaTeX projects (not tracked by git)
++-- SwiftLaTeX/               # The app — run npm / node from here
+    +-- compile.html          # Main page (editor + PDF preview)
+    +-- server.js             # Backend server (Express)
+    +-- config.json           # Your config file (not tracked by git)
+    +-- config.example.json   # Config template
+    +-- package.json          # Node.js dependencies and npm scripts
+    +-- dashboard.html        # Project dashboard page
+    +-- calendar.html         # Canvas calendar page
+    +-- index.html            # Landing page
+    +-- lib/                  # Security preload and helpers
+    +-- test/                 # Tests (npm test)
+    +-- assets/               # Static assets (fonts, images)
+    +-- css/                  # Stylesheets
+    +-- engines/              # LaTeX WebAssembly engines
+    +-- examples/             # Example paper PDFs
+    +-- scrapers/             # Canvas scraper scripts (session.json here is private)
+    +-- data/                 # Library, Canvas cache (not tracked by git)
 ```
+
+---
+
+## Security Notes
+
+The server has no login. Anyone who can reach it can read your API keys and edit files, so by default it only listens on this computer.
+
+- **Start with `npm start`.** It loads `lib/harden.js`, which binds to `127.0.0.1`, rejects requests whose `Host` is not `localhost` or an IP (DNS rebinding), rejects cross-site calls to `/api/*` (OAuth callbacks excepted), and refuses to serve `config.json`, `scrapers/`, `data/` and `projects/` as static files.
+- **LAN access** (e.g. from an iPad): `SENKOU_HOST=0.0.0.0 npm start`. Only do this on a network you trust; everyone on it gets full access. Add a hostname with `SENKOU_ALLOWED_HOSTS=mypc.local` if you use one.
+- **Troubleshooting:** `SENKOU_HARDEN=off npm start` turns off the request checks (the server still binds to `127.0.0.1`). The server log prints `[harden] 403 ...` for every blocked request.
+- **Secrets on disk:** `config.json` (API keys, tokens), `scrapers/session.json` (Canvas login) and the Canvas ICS URL are all private. If any of them is ever pushed or shared, rotate it.
+
+## Running Tests
+
+```bash
+cd Senkou-Agent/SwiftLaTeX
+npm test
+```
+
+Tests use Node's built-in test runner (no extra dependencies) and cover the security preload, path checks, the git helper and the Canvas helpers.
 
 ---
 
@@ -616,10 +672,10 @@ Senkou-Agent/
 **A:** Your system doesn't have a LaTeX distribution installed. Install MiKTeX (Windows), MacTeX (macOS), or TeX Live (Linux), and make sure `xelatex` is available in your terminal.
 
 ### Q: Server error "Cannot find module 'express'"
-**A:** Node.js dependencies aren't installed. Run `npm install` in the Senkou-Agent directory.
+**A:** Node.js dependencies aren't installed. Run `npm install` in the `Senkou-Agent/SwiftLaTeX` directory.
 
 ### Q: Port 3000 is already in use
-**A:** Another application is using port 3000. Close it, or change the port number at the top of `server.js`.
+**A:** Another application is using port 3000. Close it, or change `PORT` at the top of `server.js` (OAuth redirect URLs are built from it, so update your OAuth app settings too).
 
 ### Q: AI assistant not working
 **A:** Check that your API key is correctly entered in `config.json`. You can also check the AI settings panel in the top-right corner of the editor page.
@@ -634,7 +690,10 @@ Senkou-Agent/
 **A:** Get your Overleaf Git URL from Project → Menu → Git. Get your token from Overleaf Account Settings. Add `overleaf_token` to `config.json`. Then use the Overleaf sync panel in the editor.
 
 ### Q: How do I import Canvas assignments?
-**A:** In Canvas, go to Calendar → Calendar Feed → copy the ICS URL. Add it as `canvas_ics_url` in `config.json`. Open the calendar page or trigger a scrape from the editor.
+**A:** Set `canvas_base_url` to your school's Canvas address in `config.json`. For deadlines, copy the ICS URL from Canvas → Calendar → Calendar Feed into `canvas_ics_url`. Open the calendar page or trigger a scrape from the editor; a browser window opens for you to log in.
+
+### Q: The page shows "Forbidden (host not allowed)" or "Forbidden (cross-site request blocked)"
+**A:** That is `lib/harden.js` blocking the request. Open the app at `http://localhost:3000` (not through another domain). If you deliberately use a hostname, add it with `SENKOU_ALLOWED_HOSTS`.
 
 ### Q: Can multiple people use this at the same time?
 **A:** Each person should install their own copy. The server runs locally on each machine. Use GitHub or Overleaf sync for collaboration.

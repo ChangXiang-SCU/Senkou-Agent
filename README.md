@@ -1,89 +1,63 @@
-# Claude LaTeX
+# Senkou Agent
 
-A local LaTeX compilation and PDF viewing system with a modern dark theme UI.
+A locally hosted LaTeX IDE: CodeMirror editor, live PDF preview, multi-provider AI assistant (Claude / OpenAI / Gemini / OpenRouter), Overleaf-style comments, GitHub and Overleaf sync, and Canvas assignment import.
 
-## Features
+Full documentation: [SwiftLaTeX/README.md](SwiftLaTeX/README.md)
 
-- **Real-time PDF Preview**: View compiled PDFs directly in the browser
-- **Auto-compilation**: Automatically recompiles when files change
-- **Project Management**: Organize multiple LaTeX projects with version folders
-- **Recently Modified Indicator**: Green dot shows projects modified within 5 minutes
-- **Session Persistence**: Remembers last viewed project across browser refreshes
-- **Collapsible Console**: View compilation logs when needed
+## Requirements
 
-## Project Structure
+- **Node.js 20.19+** (22 LTS recommended). Node 18 is not enough: `express` 5 and `chokidar` 5 need a newer runtime.
+- **A TeX distribution** with `xelatex` / `pdflatex` / `bibtex` on `PATH`: MiKTeX (Windows), MacTeX (macOS) or TeX Live (Linux).
+- **Git**, for updates and for the GitHub / Overleaf sync features.
 
-```
-Claude-Latex/
-├── SwiftLaTeX/              # Core application
-│   ├── server.js            # Node.js server for file serving & compilation
-│   ├── compile.html         # Main UI (Claude LaTeX viewer)
-│   ├── package.json         # Dependencies
-│   └── ...
-├── projects/                # LaTeX projects folder
-│   └── CHI26_Poster/        # Example project
-│       ├── main.tex
-│       ├── sections/
-│       ├── figures/
-│       └── reference.bib
-└── .gitignore
+## Install
+
+```bash
+git clone https://github.com/ChangXiang-SCU/Senkou-Agent.git
+cd Senkou-Agent
+mkdir projects
+cd SwiftLaTeX
+npm install
 ```
 
-## Getting Started
+The app lives in `SwiftLaTeX/`; run all `npm` / `node` commands there. Put your LaTeX projects in `Senkou-Agent/projects/`, one folder per project.
 
-### Prerequisites
+## Configure
 
-- Node.js (v14 or higher)
-- A LaTeX distribution (e.g., TeX Live, MacTeX) for local compilation
+Copy the template, then fill in only what you use:
 
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/JsnDg/Claude-Latex.git
-   cd Claude-Latex
-   ```
-
-2. Install dependencies:
-   ```bash
-   cd SwiftLaTeX
-   npm install
-   ```
-
-3. Start the server:
-   ```bash
-   node server.js
-   ```
-
-4. Open in browser:
-   ```
-   http://localhost:3000/compile.html
-   ```
-
-## Adding Projects
-
-Create a new project folder inside the `projects/` directory:
-
-```
-projects/
-└── My Project/
-    ├── main.tex
-    ├── sections/        # Optional: split content into multiple files
-    ├── figures/         # Optional: images and figures
-    └── reference.bib    # Optional: bibliography
+```bash
+cp config.example.json config.json
 ```
 
-The system automatically detects projects containing `main.tex` (or `paper.tex`, `resume.tex`, `cv.tex`, etc.).
+On Windows Command Prompt use `copy config.example.json config.json`.
 
-**Note:** Only `projects/CHI26_Poster/` is tracked by git as an example. Other projects in `projects/` are ignored and won't be pushed to the repository.
+| Field | Used for |
+|-------|----------|
+| `anthropic_api_key`, `openai_api_key`, `gemini_api_key`, `openrouter_api_key` | AI assistant |
+| `github_token` | GitHub clone / push / export |
+| `overleaf_token` | Overleaf Git sync |
+| `canvas_base_url` | Your school's Canvas address, e.g. `https://canvas.your-school.edu` |
+| `canvas_ics_url` | Canvas calendar feed (Canvas → Calendar → Calendar Feed) for deadlines |
 
-## Tech Stack
+`config.json` is git-ignored. It holds secrets, so never commit or share it. The same applies to `scrapers/session.json` (your saved Canvas login).
 
-- **Frontend**: Vanilla JavaScript, CSS3 with custom properties
-- **Backend**: Node.js with Express
-- **LaTeX Engine**: SwiftLaTeX (WebAssembly-based) + local pdflatex
-- **PDF Rendering**: PDF.js
+## Run
+
+```bash
+npm start
+```
+
+Open <http://localhost:3000/compile.html>. Other pages: `/dashboard.html`, `/calendar.html`, `/library.html`.
+
+`npm start` loads `lib/harden.js` before `server.js`: the server listens on `127.0.0.1` only, other websites cannot call the local API, and secret files are not served. The server has no login, so do not expose it to a network you don't trust. Details and the `SENKOU_*` environment variables are in [Security Notes](SwiftLaTeX/README.md#security-notes).
+
+## Test
+
+```bash
+npm test
+```
 
 ## License
 
-Based on [SwiftLaTeX](https://github.com/nickstenning/swiftlatex) - see LICENSE file for details.
+Based on [SwiftLaTeX](https://github.com/SwiftLaTeX/SwiftLaTeX) (AGPL-3.0); see `SwiftLaTeX/LICENSE`.
